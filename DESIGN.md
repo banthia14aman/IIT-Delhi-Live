@@ -428,3 +428,14 @@ Motion is cheap and purposeful. These values are written as literals in `app.css
 - Posters are `aria-hidden`, because the emoji is decorative and the title carries the meaning. The logo has the alt text "IITD Live".
 - `prefers-reduced-motion` is respected everywhere. Zooming to 200% doesn't break the one-column layout.
 - Language is set with `lang="en-IN"`. Times use the 12-hour format with AM/PM, as students read them ("7:30 PM", "Sat 18 Oct").
+
+
+## Addendum (Oct 2026): photos, glow and the discovery layer
+
+Added after the BookMyShow analysis (`research/BOOKMYSHOW_ANALYSIS.md`), to make listings sell the experience.
+
+- **Photos lead every listing.** Openly licensed covers live in `site/assets/img/` (credits at `#/credits`, `assets/img/credits.json`). Each photo sits on the organiser's poster colour, so a missing photo still reads as a poster. The emoji tile is retired from listings.
+- **Stage tokens:** `--stage`, `--on-stage`, `--on-stage-muted`, `--scrim`. Hero images (spotlight, event hero, fest header, fest tiles) put text on a dark scrim in both themes, like a lit stage.
+- **Glow tokens:** `--glow-live`, `--glow-accent`, `--glow-primary`. Each is an offset, blurred light spill tinted by what is lit. Use them only on live items, featured / marigold CTAs and hover on photo cards. The spotlight and event hero also spill a blurred copy of their own photo beneath the card, so each slide lights the page in its own colours.
+- **Discovery layer (home):** spotlight carousel (live → featured → most going; auto-advances, pauses on touch/hover/focus, off under reduced motion) → happening-now strip → "Pick your vibe" category tiles → poster rails (Tonight, Trending, Fest season, Free this week, Level up, Compete) → "Browse every event".
+- **Motion:** the spotlight auto-advance and photo hover zoom are the only additions; both respect `prefers-reduced-motion`.
