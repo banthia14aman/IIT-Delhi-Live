@@ -30,8 +30,7 @@ function mulberry32(a) {
 function makeTools(rand) {
   const int = (min, max) => min + Math.floor(rand() * (max - min + 1));
   const pick = (arr) => arr[Math.floor(rand() * arr.length)];
-  const hex = (n) => Array.from({ length: n }, () => Math.floor(rand() * 16).toString(16)).join('');
-  const token = () => `${hex(8)}-${hex(4)}-4${hex(3)}-${'89ab'[int(0, 3)]}${hex(3)}-${hex(12)}`;
+  const token = () => { const c = Array.from({ length: 8 }, () => pick(CODE_CHARS)).join(''); return `${c.slice(0, 4)}-${c.slice(4)}`; };
   const code = () => Array.from({ length: 6 }, () => pick(CODE_CHARS)).join('');
   return { int, pick, token, code };
 }

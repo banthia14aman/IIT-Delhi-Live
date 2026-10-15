@@ -113,12 +113,20 @@ function uid(prefix) {
   return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
 }
 
+// Short, typeable pass code like 7KQ4-M2XP (no 0/O, 1/I/L) so gate volunteers can key it in.
 function qrToken() {
+  const n = 8;
+  let idx;
   try {
-    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
-  } catch { /* fall through */ }
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+    idx = Array.from(globalThis.crypto.getRandomValues(new Uint32Array(n)));
+  } catch {
+    idx = Array.from({ length: n }, () => Math.floor(Math.random() * 2 ** 32));
+  }
+  const code = idx.map((v) => CODE_CHARS[v % CODE_CHARS.length]).join('');
+  return `${code.slice(0, 4)}-${code.slice(4)}`;
 }
+
+const passKey = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 function inviteCode() {
   const taken = new Set(state.teams.map((t) => t.invite_code));
@@ -610,7 +618,8 @@ export const store = {
     if (!me) return { ok: false, reason: 'log in as an organiser to scan passes' };
     // Accept a bare token or a scanned URL/payload that ends with it.
     const token = String(qrToken || '').trim().split(/[/:#?=]/).pop();
-    const reg = token && state.registrations.find((r) => r.qr_token === token);
+    const key = passKey(token);
+    const reg = key && state.registrations.find((r) => passKey(r.qr_token) === key);
     if (!reg) return { ok: false, reason: 'invalid pass' };
     const ev = findEvent(reg.event_id);
     if (!canManageEvent(me, ev)) return { ok: false, reason: 'not your event' };

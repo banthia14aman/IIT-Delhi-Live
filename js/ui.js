@@ -225,7 +225,7 @@ function toast(msg, type = 'ok') {
   span.textContent = msg;
   el.append(span);
   toastBox.append(el);
-  while (toastBox.children.length > 3) toastBox.firstElementChild.remove();
+  while (toastBox.children.length > 2) toastBox.firstElementChild.remove();
   setTimeout(() => { el.classList.add('is-leaving'); setTimeout(() => el.remove(), 300); }, type === 'error' ? 5200 : 3400);
 }
 const errMsg = (err) => (err && err.message ? String(err.message).replace(/^Error:\s*/, '') : 'Something went wrong. Try again.');
@@ -1704,26 +1704,35 @@ function viewOrgEvent(route, id) {
         <input id="att-q" class="filter-input" type="search" placeholder="Filter by name, entry no., hostel or team" autocomplete="off">
         <div class="table-wrap"><table class="table">
           <thead><tr><th scope="col">Name</th><th scope="col">Entry no.</th><th scope="col">Hostel</th><th scope="col">Team</th><th scope="col">Status</th></tr></thead>
-          <tbody>${people.map(({ registration: r, profile: p, team: t }) => `<tr data-row="${esc([p?.name, p?.entry_no, p?.hostel, t?.name, p?.email].join(' ').toLowerCase())}">
+          <tbody>${people.map(({ registration: r, profile: p, team: t }, i) => `<tr${i >= ROW_CAP ? ' data-extra' : ''} data-row="${esc([p?.name, p?.entry_no, p?.hostel, t?.name, p?.email].join(' ').toLowerCase())}">
             <td data-label="Name">${esc(p?.name || p?.email || 'Unknown')}${p && !p.is_iitd ? ' <small class="muted">guest</small>' : ''}</td>
             <td data-label="Entry no." class="mono">${esc(p?.entry_no || '–')}</td>
             <td data-label="Hostel">${esc(p?.hostel || (p?.is_iitd ? '–' : 'Outside IITD'))}</td>
             <td data-label="Team">${esc(t?.name || '–')}</td>
             <td data-label="Status"><span class="status status--${esc(r?.status)}">${esc(STATUS[r?.status] || r?.status || '')}</span>${r?.status === 'checked_in' && r.checked_in_at ? ` <small class="muted num">${esc(timeStr(r.checked_in_at))}</small>` : ''}</td>
           </tr>`).join('')}</tbody>
-        </table></div>` : empty('No registrations yet', 'Share the event link on WhatsApp to get the first sign-ups.', `<button class="btn btn--ghost" data-action="share" data-id="${esc(e.id)}">${I.share}Share event</button>`)}
+        </table></div>
+        ${people.length > ROW_CAP ? `<div class="more-row"><button class="btn btn--ghost btn--sm" data-action="show-all-rows">Show all ${esc(nf(people.length))}</button></div>` : ''}` : empty('No registrations yet', 'Share the event link on WhatsApp to get the first sign-ups.', `<button class="btn btn--ghost" data-action="share" data-id="${esc(e.id)}">${I.share}Share event</button>`)}
       </section>`,
     mount(root) {
       const q = root.querySelector('#att-q');
       const apply = () => {
         const t = (q?.value || '').trim().toLowerCase();
-        root.querySelectorAll('tr[data-row]').forEach((tr) => { tr.hidden = !!t && !tr.dataset.row.includes(t); });
+        const all = !!t || showAllRows === e.id;
+        root.querySelectorAll('tr[data-row]').forEach((tr) => {
+          tr.hidden = t ? !tr.dataset.row.includes(t) : (!all && tr.dataset.extra != null);
+        });
+        const more = root.querySelector('.more-row');
+        if (more) more.hidden = all;
       };
       q?.addEventListener('input', apply);
       apply();
     },
   };
 }
+
+const ROW_CAP = 40;
+let showAllRows = ''; // event id whose full attendee list is expanded
 
 function mountEventForm(root, clubs) {
   const form = root.querySelector('form[data-form="event-save"]');
@@ -1806,7 +1815,7 @@ function renderScanLog(root) {
 function normaliseCode(raw) {
   let s = String(raw || '').trim();
   const bare = s.replace(/[\s-]/g, '');
-  if (/^[0-9a-f]{32}$/i.test(bare)) s = bare.toLowerCase().replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5');
+  if (/^[a-z0-9]{8}$/i.test(bare)) s = `${bare.slice(0, 4)}-${bare.slice(4)}`.toUpperCase();
   return s;
 }
 
@@ -2043,6 +2052,11 @@ const actions = {
     if (!scanner) app.querySelector('#scan-code')?.focus();
   },
   'close-sheet'() { closeSheet(); },
+  'show-all-rows'() {
+    showAllRows = parseRoute().parts[2] || '';
+    app.querySelectorAll('tr[data-extra]').forEach((tr) => { tr.hidden = false; });
+    app.querySelector('.more-row')?.setAttribute('hidden', '');
+  },
 };
 
 document.addEventListener('click', async (ev) => {
@@ -2061,7 +2075,9 @@ document.addEventListener('click', async (ev) => {
 function fieldError(form, id, msg) {
   const el = form.querySelector(`#${id}`);
   if (el) { el.setAttribute('aria-invalid', 'true'); el.focus(); }
-  throw new Error(msg);
+  const err = new Error(msg);
+  err.userFacing = true;
+  throw err;
 }
 
 const forms = {
@@ -2143,7 +2159,7 @@ document.addEventListener('submit', (ev) => {
   ev.preventDefault();
   const fn = forms[form.dataset.form];
   if (!fn) return;
-  try { fn(form, ev.submitter); } catch (err) { console.error(err); toast(errMsg(err), 'error'); }
+  try { fn(form, ev.submitter); } catch (err) { if (!err?.userFacing) console.error(err); toast(errMsg(err), 'error'); }
 });
 
 document.addEventListener('input', (ev) => {
