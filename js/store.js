@@ -7,7 +7,7 @@ import { seed, localDate, HOSTELS as SEED_HOSTELS, DEMO_ACCOUNTS as SEED_DEMO_AC
 export const HOSTELS = SEED_HOSTELS;
 export const DEMO_ACCOUNTS = SEED_DEMO_ACCOUNTS;
 
-const KEY = 'iitdlive:v1';
+const KEY = 'iitdlive:v2'; // v2: events and fests gained `cover` photos
 const DAY = 24 * 60 * 60 * 1000;
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const OUTSIDE_KEY = 'Outside IITD'; // by_hostel bucket for guests without a hostel
@@ -269,13 +269,13 @@ function teamMembers(teamId) {
 
 const EDITABLE = ['club_id', 'fest_id', 'title', 'description', 'category', 'starts_at', 'ends_at', 'venue',
   'poster_emoji', 'poster_color', 'price', 'eligibility', 'iitd_first_until', 'capacity', 'overbook_pct',
-  'reg_mode', 'external_url', 'team_min', 'team_max', 'status', 'featured'];
+  'reg_mode', 'external_url', 'team_min', 'team_max', 'status', 'featured', 'cover'];
 
 const EVENT_DEFAULTS = {
   fest_id: null, description: '', category: 'Other', venue: '', poster_emoji: '🎉', poster_color: '#4F46E5',
   price: 0, eligibility: 'open', iitd_first_until: null, capacity: null, overbook_pct: 0, reg_mode: 'platform',
   external_url: null, team_min: 1, team_max: 1, featured: false, status: 'draft', live_note: null,
-  live_note_at: null, sample: false,
+  live_note_at: null, sample: false, cover: null,
 };
 
 function toIso(value, message) {
@@ -310,6 +310,8 @@ function normalizeEvent(e) {
   e.status = e.status === 'published' ? 'published' : 'draft';
   if (!/^#[0-9a-f]{6}$/i.test(e.poster_color || '')) e.poster_color = EVENT_DEFAULTS.poster_color;
   e.poster_emoji = String(e.poster_emoji || '').trim() || EVENT_DEFAULTS.poster_emoji;
+  // cover: a key into the bundled photo library (site/assets/img/<key>.webp); anything else is dropped.
+  e.cover = /^[a-z0-9-]{1,40}$/.test(String(e.cover || '')) ? String(e.cover) : null;
   if (e.fest_id && !state.fests.some((f) => f.id === e.fest_id)) fail('Unknown fest.');
   e.fest_id = e.fest_id || null;
   e.featured = !!e.featured;
