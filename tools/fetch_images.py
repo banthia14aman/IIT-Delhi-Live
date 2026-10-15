@@ -8,6 +8,7 @@ Sources: Openverse API (Flickr, Wikimedia, etc.; commercial-use licences only)
 and the Wikimedia Commons API. Both are keyless.
 """
 import io, json, sys, time, urllib.parse, urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageOps
 
@@ -17,7 +18,7 @@ UA = {"User-Agent": "IITDLive-class-project/1.0 (https://github.com/banthia14ama
 OK_LICENCES = {"cc0", "pdm", "by", "by-sa"}
 
 
-def get(url, timeout=40):
+def get(url, timeout=15):
     req = urllib.request.Request(url, headers=UA)
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read()
@@ -73,20 +74,32 @@ def commons(q, n=8):
     return out
 
 
+def load_thumb(c):
+    """Openverse's thumbnail proxy can be slow; fall back to the original file."""
+    for url in dict.fromkeys([c["thumb"], c["full"]]):
+        try:
+            im = Image.open(io.BytesIO(get(url, 20))).convert("RGB")
+            im.thumbnail((720, 720))
+            return im
+        except Exception:
+            continue
+    return None
+
+
 def sheet(cands, path):
     """Numbered 4-column contact sheet so a reviewer can pick by index."""
     cell_w, cell_h, cols = 360, 240, 4
     rows = (len(cands) + cols - 1) // cols
     img = Image.new("RGB", (cell_w * cols, cell_h * max(rows, 1)), "white")
     d = ImageDraw.Draw(img)
-    for i, c in enumerate(cands):
+    with ThreadPoolExecutor(16) as pool:
+        thumbs = list(pool.map(load_thumb, cands))
+    for i, (c, im) in enumerate(zip(cands, thumbs)):
         x, y = (i % cols) * cell_w, (i // cols) * cell_h
-        try:
-            im = Image.open(io.BytesIO(get(c["thumb"]))).convert("RGB")
-            im = ImageOps.fit(im, (cell_w - 6, cell_h - 6))
-            img.paste(im, (x + 3, y + 3))
-        except Exception as e:
-            d.text((x + 10, y + 100), f"load failed: {e}"[:60], fill="red")
+        if im is None:
+            d.text((x + 10, y + 100), "load failed", fill="red")
+        else:
+            img.paste(ImageOps.fit(im, (cell_w - 6, cell_h - 6)), (x + 3, y + 3))
         d.rectangle([x + 3, y + 3, x + 60, y + 33], fill="black")
         d.text((x + 10, y + 8), f"#{i}", fill="yellow")
     img.save(path, quality=72)
@@ -97,13 +110,15 @@ def candidates():
     outdir = ROOT / "tools/candidates"
     outdir.mkdir(parents=True, exist_ok=True)
     for key, qs in queries.items():
+        if (outdir / f"{key}.json").exists():  # only fetch new categories
+            continue
         seen, cands = set(), []
         for q in qs:
             for c in openverse(q) + commons(q, 6):
                 if c["full"] and c["full"] not in seen and min(c["w"] or 9999, c["h"] or 9999) >= 500:
                     seen.add(c["full"])
                     cands.append(c)
-            time.sleep(1.5)  # stay well under anonymous rate limits
+            time.sleep(1)  # stay under anonymous rate limits
         cands = cands[:16]
         (outdir / f"{key}.json").write_text(json.dumps(cands, indent=1))
         sheet(cands, outdir / f"{key}.jpg")
@@ -119,7 +134,7 @@ def final():
         cat, idx = ref.split("#")
         c = json.loads((ROOT / f"tools/candidates/{cat}.json").read_text())[int(idx)]
         try:
-            im = Image.open(io.BytesIO(get(c["full"], 90))).convert("RGB")
+            im = Image.open(io.BytesIO(get(c["full"], 60))).convert("RGB")
         except Exception as e:
             failed.append(key)
             print("FAILED", key, e)

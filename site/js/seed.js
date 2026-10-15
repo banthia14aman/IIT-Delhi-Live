@@ -171,10 +171,10 @@ export function seed(now = new Date()) {
 
   // --- fests ---
   const fests = [
-    { id: 'f_becon', name: 'BECon 2027', slug: 'becon-2027', starts_on: '2027-01-29', ends_on: '2027-01-31', tagline: "eDC IIT Delhi's entrepreneurship summit: talks, pitches, startup expo", dates_tbc: true, sample: false },
-    { id: 'f_tryst', name: 'Tryst 2027', slug: 'tryst-2027', starts_on: '2027-02-26', ends_on: '2027-03-01', tagline: "IIT Delhi's tech and management fest", dates_tbc: true, sample: false },
-    { id: 'f_rdv', name: 'Rendezvous 2027', slug: 'rendezvous-2027', starts_on: '2027-09-24', ends_on: '2027-09-27', tagline: "IIT Delhi's cultural fest: competitions and four pronites", dates_tbc: true, sample: false },
-    { id: 'f_demo', name: 'RDV Demo Fest', slug: 'rdv-demo-fest', starts_on: localDate(at(0, 12)), ends_on: localDate(at(2, 12)), tagline: 'A three-day sample fest to show the schedule view', dates_tbc: false, sample: true },
+    { id: 'f_becon', cover: 'becon', name: 'BECon 2027', slug: 'becon-2027', starts_on: '2027-01-29', ends_on: '2027-01-31', tagline: "eDC IIT Delhi's entrepreneurship summit: talks, pitches, startup expo", dates_tbc: true, sample: false },
+    { id: 'f_tryst', cover: 'tryst', name: 'Tryst 2027', slug: 'tryst-2027', starts_on: '2027-02-26', ends_on: '2027-03-01', tagline: "IIT Delhi's tech and management fest", dates_tbc: true, sample: false },
+    { id: 'f_rdv', cover: 'rdv', name: 'Rendezvous 2027', slug: 'rendezvous-2027', starts_on: '2027-09-24', ends_on: '2027-09-27', tagline: "IIT Delhi's cultural fest: competitions and four pronites", dates_tbc: true, sample: false },
+    { id: 'f_demo', cover: 'fireworks', name: 'RDV Demo Fest', slug: 'rdv-demo-fest', starts_on: localDate(at(0, 12)), ends_on: localDate(at(2, 12)), tagline: 'A three-day sample fest to show the schedule view', dates_tbc: false, sample: true },
   ];
 
   // --- events ---
@@ -392,6 +392,19 @@ export function seed(now = new Date()) {
   fill('e_becon_pass', 15, { outsiders: 3 });
   fill('e_robowars', 0);
   fill('e_rdv_pronite', 12);
+
+  // Cover photos (openly licensed, see assets/img/credits.json), keyed into site/assets/img/<key>.webp.
+  const COVERS = {
+    e_open_mic: 'openmic', e_battle_bands: 'band', e_street_play: 'streetplay', e_quiz: 'quiz',
+    e_movie: 'movie', e_standup: 'comedy', e_dj_night: 'dj', e_fashion: 'fashion', e_treasure: 'treasure',
+    e_classical: 'classical', e_dance_faceoff: 'dance', e_arduino: 'robotics', e_hiphop: 'hiphop',
+    e_hackathon: 'hackathon', e_case_comp: 'casecomp', e_edc_talk: 'startup', e_fin_lecture: 'lecture',
+    e_trials: 'sports', e_blood: 'blood', e_andha_yug: 'theatre', e_hacking: 'coding', e_brand_wars: 'pitch',
+    e_writing: 'writing', e_caic_showcase: 'techexpo', e_nss_teach: 'volunteer', e_bnc_talk: 'talk',
+    e_open_source: 'opensource', e_becon_pass: 'conference', e_becon_pitch: 'becon', e_tryst_hack: 'tryst',
+    e_robowars: 'robowars', e_rdv_pronite: 'pronite', e_speranza: 'crowd', e_acoustic_draft: 'openmic',
+  };
+  for (const e of events) e.cover = COVERS[e.id] || null;
 
   return { profiles, clubs, fests, events, teams, registrations };
 }
