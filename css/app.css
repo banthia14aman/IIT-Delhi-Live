@@ -1853,7 +1853,7 @@ legend { font-family: var(--font-display); font-weight: 800; font-size: 1.125rem
 
 /* Fest hub hero */
 .fest-head--photo { min-height: 260px; display: flex; flex-direction: column; justify-content: flex-end; border: 0; overflow: visible; isolation: isolate; color: var(--on-stage); background: var(--stage); }
-.fest-head--photo::before { z-index: 2; border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: var(--glow-accent); }
+.fest-head--photo::before { display: none; }
 .fest-head--photo .fest-head__media { position: absolute; inset: 0; border-radius: inherit; z-index: 0; }
 .fest-head--photo .fest-head__media::after { content: ""; position: absolute; inset: 0; background: var(--scrim); }
 .fest-head--photo > :not(.fest-head__media, .hero__glow) { position: relative; z-index: 1; }
