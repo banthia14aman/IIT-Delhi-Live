@@ -1,0 +1,33 @@
+# Fetches openly licensed listing photos (the dev container cannot reach image hosts).
+# Editing tools/image-queries.json -> builds contact sheets in tools/candidates/.
+# Editing tools/image-picks.json   -> downloads the picks into site/assets/img/.
+name: images
+on:
+  push:
+    paths: ["tools/image-queries.json", "tools/image-picks.json", "tools/fetch_images.py"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pillow==11.0.0
+      - name: Pick mode from what changed
+        id: mode
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -q image-picks.json; then echo "mode=final" >> "$GITHUB_OUTPUT"; else echo "mode=candidates" >> "$GITHUB_OUTPUT"; fi
+      - run: python tools/fetch_images.py ${{ steps.mode.outputs.mode }}
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/candidates site/assets/img 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -m "images: ${{ steps.mode.outputs.mode }} [skip ci]"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
