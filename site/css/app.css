@@ -1738,7 +1738,7 @@ legend { font-family: var(--font-display); font-weight: 800; font-size: 1.125rem
 /* Fest tiles: wide, photo-led. Also used for the Fests grid. */
 .ftile { position: relative; width: clamp(272px, 82vw, 380px); aspect-ratio: 16 / 11; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); isolation: isolate; }
 .grid--fests .ftile { width: auto; }
-.ftile > .media { position: absolute; inset: 0; z-index: -1; }
+.ftile > .media { position: absolute; inset: 0; z-index: -2; }
 .ftile::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--scrim); }
 .ftile::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--accent); box-shadow: var(--glow-accent); }
 .ftile__body { position: absolute; left: 0; right: 0; bottom: 0; padding: var(--space-4); color: var(--on-stage); }

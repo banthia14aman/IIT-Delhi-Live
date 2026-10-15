@@ -1647,7 +1647,8 @@ function viewOrg() {
 // Bundled, openly licensed cover photos an organiser can pick (assets/img/<key>.webp).
 const COVER_LIBRARY = ['pronite', 'dj', 'openmic', 'band', 'comedy', 'dance', 'hiphop', 'classical', 'theatre', 'streetplay',
   'fashion', 'movie', 'quiz', 'writing', 'hackathon', 'coding', 'opensource', 'robotics', 'robowars', 'techexpo', 'startup',
-  'pitch', 'conference', 'lecture', 'talk', 'casecomp', 'sports', 'treasure', 'volunteer', 'blood', 'crowd', 'fireworks'];
+  'pitch', 'conference', 'lecture', 'talk', 'casecomp', 'sports', 'treasure', 'volunteer', 'blood', 'crowd', 'fireworks',
+  'rdv', 'tryst', 'campus'];
 const SWATCHES = ['#8A1538', '#D9480F', '#F08C00', '#2B8A3E', '#0B7285', '#1864AB', '#5F3DC4', '#C2255C', '#495057', '#212529'];
 
 function eventForm(e, clubs, fests, cats, user) {
