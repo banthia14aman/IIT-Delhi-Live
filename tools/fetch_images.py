@@ -4,8 +4,8 @@
   python tools/fetch_images.py candidates   # contact sheets -> tools/candidates/
   python tools/fetch_images.py final        # picks -> site/assets/img/*.webp + credits.json
 
-Sources: Openverse API (Flickr, Wikimedia, etc.; commercial-use licences only)
-and the Wikimedia Commons API. Both are keyless.
+Source: the Wikimedia Commons API (keyless; CC0 / public domain / CC BY / CC BY-SA only).
+An Openverse helper is kept for reference but times out from GitHub's runners.
 """
 import io, json, sys, time, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -118,8 +118,9 @@ def candidates():
             break
         seen, cands = set(), []
         for q in qs:
-            for c in openverse(q) + commons(q, 6):
-                if c["full"] and c["full"] not in seen and min(c["w"] or 9999, c["h"] or 9999) >= 500:
+            # Openverse times out from GitHub's runners; Commons is fast and every file carries its licence.
+            for c in commons(q, 14):
+                if c["full"] and c["full"] not in seen and min(c["w"] or 0, c["h"] or 0) >= 800:
                     seen.add(c["full"])
                     cands.append(c)
             time.sleep(1)  # stay under anonymous rate limits
