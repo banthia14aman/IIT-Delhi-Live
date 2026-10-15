@@ -1,0 +1,625 @@
+/* IITD Live theme v3: "Stage Black". The shipped theme (index.html loads it after app.css).
+   The masthead is a black stage in both modes and the event photos supply the colour.
+   One owned accent, IIT maroon, lit two ways:
+     - by day on the page: maroon #A8123E (CTAs, active states, links, urgency, the seal);
+     - under stage light, on anything black: crimson #D81B4A (the LIVE stamp in the wordmark,
+       tab bars, the spotlight Register button, and the dark-mode primary).
+   The wallet pass runs from heritage maroon #8A1538 into that crimson.
+   Marigold is only the "Featured" mark. Saffron-orange is only LIVE.
+
+   Glow rules: nothing glows inside a scroll container unless its light is drawn inside the item
+   or the scroller fades it out (the spotlight track has a bottom mask). Glow is allowed on the
+   spotlight photo spill, the primary CTA, the LIVE stamp and the LIVE badges.
+
+   Type: Archivo (OFL, Omnibus-Type), one variable file trimmed to wght 400–850 / wdth 100–115,
+   57.5 KB latin + a 1.4 KB ₹-only subset. Display runs semi-expanded (wdth 112) for title-card
+   presence; body runs at normal width. Pass codes keep --font-mono from tokens.css. */
+
+@font-face {
+  font-family: "IITD Archivo";
+  src: url("../../assets/fonts/stage/archivo-latin-var.woff2") format("woff2");
+  font-weight: 400 850;
+  font-stretch: 100% 115%;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IITD Archivo";
+  src: url("../../assets/fonts/stage/archivo-rupee-var.woff2") format("woff2");
+  font-weight: 400 850;
+  font-stretch: 100% 115%;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20B9;
+}
+
+/* ------------------------------------------------------------------ */
+/* Tokens: day (house lights up)                                       */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --bg: #F5F5F7;
+  --surface: #FFFFFF;
+  --surface-2: #EDEDF0;
+  --text: #0B0B0D;
+  --text-muted: #55555F;
+  --border: #DEDEE3;
+
+  --primary: #A8123E;          /* IIT maroon, lifted: CTA, active state, links, seal */
+  --primary-contrast: #FFFFFF;
+  --accent: #FFB21E;           /* marigold: the Featured mark only */
+  --accent-contrast: #111113;  /* ink on marigold and on live */
+
+  --success: #0A6F37;
+  --warning: #8A4F00;
+  --danger: #B42318;
+  --live: #F2570A;             /* saffron-orange: happening now, nothing else */
+
+  --font-display: "IITD Archivo", "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: "IITD Archivo", "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+
+  --radius-sm: 6px;
+  --radius: 12px;
+  --radius-lg: 18px;
+
+  --shadow-sm: 0 1px 2px rgb(11 11 13 / 0.06), 0 1px 3px rgb(11 11 13 / 0.05);
+  --shadow: 0 18px 36px -18px rgb(11 11 13 / 0.38), 0 2px 6px rgb(11 11 13 / 0.06);
+
+  /* The stage: masthead, photo scrims, ticket stubs. Black in both modes. */
+  --stage: #0B0B0D;
+  --on-stage: #FFFFFF;
+  --on-stage-muted: #D4D4D8;
+  --scrim: linear-gradient(180deg, rgb(11 11 13 / 0) 0%, rgb(11 11 13 / 0.1) 30%, rgb(11 11 13 / 0.74) 62%, rgb(11 11 13 / 0.95) 100%);
+
+  --glow-live: 0 4px 14px -4px rgb(242 87 10 / 0.6);
+  --glow-accent: 0 3px 10px -3px rgb(255 178 30 / 0.45);
+  --glow-primary: 0 10px 24px -10px rgb(168 18 62 / 0.6);
+
+  /* Theme-local roles (not in the contract; used only by this file). */
+  --primary-ink: #A8123E;      /* maroon as text on page surfaces */
+  --maroon: #8A1538;           /* IIT Delhi heritage maroon: the start of the pass */
+  --crimson: #D81B4A;          /* maroon under stage light: anything on black (white text 5.03:1) */
+  --glow-crimson: 0 10px 30px -8px rgb(216 27 74 / 0.75);
+  --pass-end: #C0103F;
+  --tint: 10%;                 /* status-chip tint strength */
+  --stage-line: rgb(255 255 255 / 0.1);
+  --stage-field: #1C1C21;
+  --stub: #0B0B0D;
+  --spot-glow: 0.5;            /* the spotlight photo spill: soft coloured shadow by day */
+  --ticket-mask:
+    radial-gradient(circle at 0 50%, #0000 4.5px, #000 5px) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 50%, #0000 4.5px, #000 5px) right / 51% 100% no-repeat;
+}
+
+/* ------------------------------------------------------------------ */
+/* Tokens: night (house lights down)                                   */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0B0B0D;
+    --surface: #151518;
+    --surface-2: #1F1F24;
+    --text: #F5F5F7;
+    --text-muted: #A1A1AA;
+    --border: #2C2C33;
+
+    --primary: #D81B4A;        /* the lit crimson: white text 5.03:1 */
+    --primary-contrast: #FFFFFF;
+    --accent: #FFC23D;
+    --accent-contrast: #111113;
+
+    --success: #4ADE80;
+    --warning: #FBBF24;
+    --danger: #FF6B5E;
+    --live: #FF7A1F;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.6);
+    --shadow: 0 18px 40px -16px rgb(0 0 0 / 0.85), 0 2px 6px rgb(0 0 0 / 0.5);
+
+    --on-stage: #F5F5F7;
+
+    --glow-live: 0 4px 16px -3px rgb(255 122 31 / 0.7);
+    --glow-accent: 0 3px 10px -3px rgb(255 194 61 / 0.4);
+    --glow-primary: 0 10px 30px -8px rgb(216 27 74 / 0.75);
+
+    --primary-ink: #FF5A73;
+    --pass-end: #D81B4A;
+    --tint: 18%;
+    --stub: #26262C;
+    --spot-glow: 0.9;          /* at night the photo lights the stage */
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Base type                                                           */
+/* ------------------------------------------------------------------ */
+
+body { font-stretch: 100%; letter-spacing: 0; }
+h1, h2, .h-headline, .slide__title, .ftile__name, .rail__title, .pass__title,
+.cta__price b, .slide__price, .verdict__name, .empty__title, .brand__name, .stub__date {
+  font-stretch: 112%;
+}
+h1 { letter-spacing: -0.025em; }
+h2, .h-headline { letter-spacing: -0.02em; }
+h3 { font-stretch: 100%; font-weight: 700; letter-spacing: -0.01em; }
+legend { font-stretch: 108%; }
+
+a { color: var(--primary-ink); }
+::selection { background: color-mix(in srgb, var(--primary) 22%, var(--surface)); color: var(--text); }
+html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) transparent; }
+
+/* ------------------------------------------------------------------ */
+/* Masthead: the stage, black in both modes                            */
+/* ------------------------------------------------------------------ */
+
+.topbar { background: var(--stage); color: var(--on-stage); }
+.topbar :focus-visible { outline-color: var(--on-stage); }
+
+/* The mark: a white ticket with a crimson live dot, no box, so the LIVE stamp is the only red block. */
+.brand { gap: 10px; }
+.brand__mark {
+  width: 31px;
+  height: 22px;
+  border-radius: 0;
+  box-shadow: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='96 150 320 212'%3E%3Cpath fill='%23fff' d='M124 150h264a28 28 0 0 1 28 28v48a30 30 0 0 0 0 60v48a28 28 0 0 1-28 28H124a28 28 0 0 1-28-28v-48a30 30 0 0 0 0-60v-48a28 28 0 0 1 28-28z'/%3E%3Cpath d='M322 178v156' stroke='%230B0B0D' stroke-width='12' stroke-linecap='round' stroke-dasharray='1 26'/%3E%3Ccircle cx='206' cy='256' r='34' fill='%23D81B4A'/%3E%3Ccircle cx='206' cy='256' r='68' fill='none' stroke='%23D81B4A' stroke-width='18'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+/* Wordmark: "IITD" in white, then LIVE as a tilted crimson stamp, lit like an on-air sign. */
+.brand__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34em;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--on-stage);
+}
+.brand__name b {
+  display: inline-block;
+  padding: 0.22em 0.42em 0.18em;
+  border-radius: 5px;
+  background: var(--crimson);
+  color: #FFFFFF;
+  font-size: 0.72em;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+  box-shadow: 0 6px 18px -6px rgb(216 27 74 / 0.85);
+}
+
+.search input {
+  background: var(--stage-field);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  color: var(--on-stage);
+}
+.search input::placeholder { color: #A1A1AA; }
+.search input:hover { border-color: rgb(255 255 255 / 0.28); }
+.search input:focus { background: var(--stage-field); color: var(--on-stage); border-color: var(--crimson); }
+.search input:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
+.search__icon { color: #A1A1AA; }
+.search:focus-within .search__icon { color: var(--on-stage); }
+
+.account { color: var(--on-stage); border: 1px solid rgb(255 255 255 / 0.3); }
+.account:hover { background: rgb(255 255 255 / 0.08); }
+.account--avatar { border: 0; background: var(--crimson); color: #FFFFFF; }
+.account--avatar:hover { background: color-mix(in srgb, var(--crimson) 86%, #000); box-shadow: none; }
+
+.tabs--mast {
+  background: var(--stage);
+  border-bottom: 1px solid var(--stage-line);
+  box-shadow: none;
+}
+.tabs--mast .tab { color: rgb(255 255 255 / 0.64); font-weight: 700; }
+.tabs--mast .tab:hover, .tabs--mast .tab[aria-current="page"] { color: var(--on-stage); }
+.tabs--mast .tab[aria-current="page"]::after { background: var(--crimson); height: 3px; }
+.tabs--mast .tab:focus-visible { outline-color: var(--on-stage); }
+/* Saffron reads on black in both modes, so the live dot on Tonight shows in light mode too. */
+.tab__live { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--live); margin-left: 6px; vertical-align: 0.2em; }
+
+@media (min-width: 1000px) {
+  .topnav a { opacity: 1; color: rgb(255 255 255 / 0.72); }
+  .topnav a:hover, .topnav a[aria-current="page"] { color: var(--on-stage); }
+  .topnav a[aria-current="page"]::after { background: var(--crimson); }
+}
+
+.badge { background: var(--crimson); color: #FFFFFF; border-radius: 999px; }
+
+/* ------------------------------------------------------------------ */
+/* Bottom navigation                                                   */
+/* ------------------------------------------------------------------ */
+
+.tabbar { background: var(--surface); border-top-color: var(--border); }
+.tabbar a[aria-current="page"] { color: var(--primary-ink); }
+.tabbar a[aria-current="page"] svg { background: color-mix(in srgb, var(--primary) var(--tint), var(--surface)); }
+.tabbar .badge { box-shadow: 0 0 0 2px var(--surface); }
+
+.footer__dot { background: var(--text-muted); }
+
+/* ------------------------------------------------------------------ */
+/* Buttons: maroon is the one action colour; only the primary CTA glows */
+/* ------------------------------------------------------------------ */
+
+.btn { font-weight: 700; letter-spacing: 0; }
+/* Hover darkens in both modes, so white text only gains contrast. */
+.btn:not(.btn--ghost, .btn--ok, .btn--danger, .btn--wa):not(:disabled, [aria-disabled="true"]):hover {
+  background: color-mix(in srgb, var(--primary) 86%, #000);
+}
+.btn--ghost { border-width: 1px; border-color: color-mix(in srgb, var(--text) 32%, var(--surface)); }
+.btn--ghost:hover { border-color: var(--text); background: var(--surface); }
+
+/* The event-page action: the CTA that sells. */
+.cta__btn .btn:not(.btn--ghost, .btn--ok, .btn--danger, .btn--wa):not(:disabled, [aria-disabled="true"]) {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  box-shadow: var(--glow-primary);
+}
+/* The spotlight Register sits on a photo, so it takes the lit crimson in both modes. */
+.btn--glow {
+  background: var(--crimson);
+  color: #FFFFFF;
+  box-shadow: var(--glow-crimson);
+}
+.btn--glow:hover { background: color-mix(in srgb, var(--crimson) 86%, #000); box-shadow: var(--glow-crimson); }
+
+/* ------------------------------------------------------------------ */
+/* Chips: calm by default. Colour only where it means something.        */
+/* ------------------------------------------------------------------ */
+
+.chip, .status, .idchip { border-radius: var(--radius-sm); }
+.chip--free, .chip--paid, .chip--iitd, .chip--first, .chip--tbc { background: var(--surface-2); color: var(--text); }
+.chip--open, .chip--team { background: var(--surface-2); color: var(--text-muted); }
+/* IITD-only and IITD-first keep a maroon icon: belonging, said quietly. */
+.chip--iitd .i, .chip--early .i { color: var(--primary-ink); }
+.chip--first .i { fill: none; stroke-width: 2; }
+/* Featured is the one marigold mark. */
+.chip--featured { background: var(--accent); color: var(--accent-contrast); }
+.chip--featured .i { color: currentColor; fill: currentColor; stroke-width: 1.5; }
+
+.idchip--iitd {
+  background: color-mix(in srgb, var(--primary) var(--tint), var(--surface));
+  color: var(--primary-ink);
+}
+.status--confirmed, .status--checked_in { background: color-mix(in srgb, var(--success) var(--tint), var(--surface)); }
+.avatar { background: color-mix(in srgb, var(--primary) var(--tint), var(--surface)); color: var(--primary-ink); }
+
+.seal__fill { fill: var(--primary); }
+.seal__mark { stroke: var(--primary-contrast); }
+
+.live {
+  background: var(--live);
+  color: var(--accent-contrast);
+  border-radius: 999px;
+  padding: 0 10px 0 8px;
+  letter-spacing: 0.01em;
+  box-shadow: var(--glow-live);
+}
+
+/* Honest urgency speaks in the brand colour, not a one-off mustard. */
+.card__urgent, .pcard__urgent, .cta__price small.warn { color: var(--primary-ink); }
+
+/* ------------------------------------------------------------------ */
+/* Ticket cards (lists): black stub, white card, photo on top          */
+/* ------------------------------------------------------------------ */
+
+/* A 72px stub (app.css: 64px) so the live line breaks as "till / 11:00 PM", never "till 11:00 / PM". */
+.card { border-color: var(--border); grid-template-columns: 72px minmax(0, 1fr); }
+.card::before, .card::after { left: calc(72px - var(--notch)); }
+.stub { background: var(--stub); color: var(--on-stage); }
+.stub::after { border-right-color: rgb(255 255 255 / 0.32); }
+.stub__day, .stub__month, .stub__time { color: var(--on-stage-muted); }
+.stub__date { font-weight: 800; letter-spacing: -0.03em; }
+.stub__time { text-wrap: balance; }
+.stub--live { background: var(--live); color: var(--accent-contrast); }
+.stub--live .stub__time { color: var(--accent-contrast); }
+.stub--live::after { border-right-color: rgb(17 17 19 / 0.4); }
+.stub--past { background: var(--surface-2); color: var(--text-muted); }
+.stub--past .stub__day, .stub--past .stub__month, .stub--past .stub__time { color: var(--text-muted); }
+/* The saffron stub already says LIVE; the card frame stays neutral. */
+.card.is-live { box-shadow: var(--shadow-sm); border-color: var(--border); }
+.card__art::after { background: linear-gradient(180deg, transparent 55%, rgb(11 11 13 / 0.3)); }
+.card__title a:focus-visible::after { outline-color: var(--primary); }
+
+/* ------------------------------------------------------------------ */
+/* Rails: posters, categories, fests. Nothing glows inside a scroller. */
+/* ------------------------------------------------------------------ */
+
+/* A heavy rule over each section, like a fest poster's running heads. Tighter rhythm than app.css. */
+.rail { margin-top: var(--space-5) !important; }
+.rail__head {
+  align-items: center;
+  margin-bottom: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 2px solid var(--text);
+}
+.rail__title { font-size: 1.375rem; font-weight: 800; letter-spacing: -0.025em; }
+.rail__more { color: var(--primary-ink); }
+.rail__track { padding-bottom: var(--space-2); scrollbar-color: color-mix(in srgb, var(--text-muted) 40%, transparent) transparent; }
+.discover__all { margin-top: var(--space-5) !important; }
+
+/* No-photo fallback: the organiser's colour, lit from one corner and falling into the stage black. */
+.media {
+  background:
+    radial-gradient(110% 80% at 20% 10%, color-mix(in srgb, var(--poster, var(--primary)) 82%, #fff) 0%, transparent 58%),
+    linear-gradient(165deg, var(--poster, var(--primary)) 0%, color-mix(in srgb, var(--poster, var(--primary)) 35%, var(--stage)) 100%);
+}
+
+/* Poster card. Top: a ticket-shaped price tag and the Featured star. Foot of the photo: a black
+   date band, one line, like the strip on a cinema poster. Live turns the band saffron. */
+.pcard { width: clamp(160px, 43vw, 212px); }
+.pcard__art { box-shadow: var(--shadow-sm); transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1); }
+.pcard__art::after { background: linear-gradient(180deg, rgb(11 11 13 / 0.45) 0%, transparent 30%); }
+@media (hover: hover) {
+  .pcard:hover .pcard__art { box-shadow: var(--shadow-sm); transform: translateY(-2px); }
+}
+.pcard.is-live .pcard__art { box-shadow: var(--shadow-sm); }
+
+.pcard__price {
+  top: var(--space-2);
+  left: var(--space-2);
+  bottom: auto;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 4px;
+  background: #FFFFFF;
+  color: #0B0B0D;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0 1px rgb(11 11 13 / 0.1);
+  -webkit-mask: var(--ticket-mask);
+  mask: var(--ticket-mask);
+}
+.pcard__feat { box-shadow: 0 1px 3px rgb(0 0 0 / 0.35); }
+
+.pcard__when {
+  top: auto;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  max-width: none;
+  min-height: 0;
+  padding: 7px var(--space-2) 6px;
+  border-radius: 0;
+  background: rgb(11 11 13 / 0.88);
+  color: var(--on-stage);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pcard__when--live { background: var(--live); color: var(--accent-contrast); box-shadow: none; }
+.pcard__when--live .pulse { margin-right: 6px; vertical-align: 0; }
+
+.pcard__title { font-weight: 700; letter-spacing: -0.01em; }
+.pcard__title a:focus-visible::after { outline-color: var(--primary); }
+
+.cat { box-shadow: var(--shadow-sm); border-radius: var(--radius); }
+.cat::after { background: linear-gradient(180deg, transparent 38%, rgb(11 11 13 / 0.86)); }
+.cat .media__img { transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+.cat__name { font-stretch: 108%; letter-spacing: -0.015em; }
+@media (hover: hover) {
+  .cat:hover { box-shadow: var(--shadow-sm); }
+  .cat:hover .media__img { transform: scale(1.06); }
+}
+
+/* Fest tiles: the dates ride on a ticket tag, so a tile reads as a poster even without its photo. */
+.ftile { box-shadow: var(--shadow-sm); }
+.ftile::after { display: none; }
+.ftile__dates {
+  display: inline-block;
+  padding: 5px 10px 4px;
+  border-radius: 3px;
+  background: #FFFFFF;
+  color: #0B0B0D;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  -webkit-mask: var(--ticket-mask);
+  mask: var(--ticket-mask);
+}
+.ftile__name { margin-top: var(--space-2); font-weight: 800; letter-spacing: -0.03em; }
+/* Photo missing or still loading: a lit stage, not a flat gradient. */
+.ftile > .media:not(:has(.media__img)) {
+  background:
+    radial-gradient(70% 90% at 82% -10%, color-mix(in srgb, var(--poster, var(--crimson)) 70%, #fff) 0%, transparent 60%),
+    radial-gradient(60% 70% at 10% 0%, rgb(216 27 74 / 0.45) 0%, transparent 70%),
+    repeating-linear-gradient(115deg, rgb(255 255 255 / 0.035) 0 2px, transparent 2px 14px),
+    var(--stage);
+}
+@media (hover: hover) { .ftile:hover { box-shadow: var(--shadow); } }
+
+/* ------------------------------------------------------------------ */
+/* Spotlight                                                           */
+/* ------------------------------------------------------------------ */
+
+/* Full bleed, flush under the tabs (the -16px collapses with the tabs' margin). No band colour:
+   by night the ground already is the stage; by day the card sits on the light ground, so the two
+   modes look different above the fold and nothing ends in a hard edge. */
+.spot {
+  margin: calc(var(--space-4) * -1) calc(50% - 50vw) 0 !important;
+  padding: var(--space-4) 0 0;
+  background: transparent;
+}
+/* The scroller fades its own last 44px, so the photo's light spill can never clip into a slab. */
+.spot__track {
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 44px), transparent);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 44px), transparent);
+}
+.slide { padding: 0 var(--space-4) 64px; }
+.slide__card { border-radius: var(--radius-lg); }
+/* A hairline bezel, so the card keeps its frame where the scrim meets the black ground. */
+.slide__card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  pointer-events: none;
+}
+/* The photo lights the floor in its own colours. */
+.slide__glow {
+  inset: 45% 10% 0;
+  border-radius: 50%;
+  transform: translateY(18px);
+  filter: blur(30px) saturate(1.5);
+  opacity: var(--spot-glow);
+}
+@media (prefers-color-scheme: dark) {
+  .slide__glow { inset: 32% 4% 0; transform: translateY(22px); filter: blur(34px) saturate(1.6); }
+}
+.slide__media { box-shadow: var(--shadow); }
+.slide.is-live .slide__media { box-shadow: var(--shadow); }
+.slide__when { color: var(--on-stage-muted); }
+.slide__when > .live + span::before { content: none; }
+.slide__title { font-size: clamp(1.875rem, 8.2vw, 3.25rem); font-weight: 800; letter-spacing: -0.035em; line-height: 0.98; }
+.slide__title a:focus-visible::after { outline-color: var(--on-stage); }
+.slide__sub { color: var(--on-stage-muted); }
+.slide .seal__fill { fill: var(--on-stage); }
+.slide .seal__mark { stroke: var(--stage); }
+.slide__price { font-weight: 800; letter-spacing: -0.02em; color: var(--on-stage); }
+.slide__price small { color: var(--on-stage-muted); }
+.slide__cta .btn { min-width: 132px; }
+
+.spot__dots { position: relative; z-index: 1; margin-top: -56px !important; }
+.spot__dot::before { background: color-mix(in srgb, var(--text) 26%, transparent); }
+.spot__dot[aria-current="true"]::before { background: var(--text); box-shadow: none; }
+.spot__dot:focus-visible { outline-color: var(--primary); }
+
+@media (max-width: 719.98px) {
+  .slide__card { aspect-ratio: 5 / 6; }
+}
+@media (min-width: 720px) {
+  .slide { padding: 0 max(var(--space-4), calc(50vw - 340px)) 72px; }
+  .slide__media::after {
+    background: var(--scrim), linear-gradient(90deg, rgb(11 11 13 / 0.72) 0%, rgb(11 11 13 / 0.2) 55%, transparent 80%);
+  }
+  .spot__dots { margin-top: -64px !important; }
+}
+@media (min-width: 720px) and (prefers-color-scheme: dark) {
+  .slide__glow { inset: 22% 2% 0; }
+}
+@media (min-width: 1000px) {
+  .slide { padding: 0 max(var(--space-4), calc(50vw - 520px)) 72px; }
+  .slide__title { font-size: 3.5rem; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Happening now: label on its own line, flat chips with a live ring   */
+/* ------------------------------------------------------------------ */
+
+.livestrip { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); align-items: start; margin-top: var(--space-4) !important; }
+.livestrip__label { justify-self: start; }
+.livestrip__track {
+  gap: var(--space-2);
+  margin: 0 calc(var(--space-4) * -1);
+  padding: 2px var(--space-4) 4px;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--space-4);
+}
+.livechip {
+  position: relative;
+  isolation: isolate;
+  scroll-snap-align: start;
+  min-height: 56px;
+  padding: 6px var(--space-4) 6px 6px;
+  gap: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  transition: border-color 200ms ease;
+}
+.livechip:hover { border-color: color-mix(in srgb, var(--text) 40%, var(--surface)); }
+.livechip:focus-visible { outline-offset: -3px; }
+/* The live signal is drawn inside the chip: a lit saffron ring around the photo, like a story ring. */
+.livechip::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 50%;
+  z-index: 0;
+  width: 48px;
+  height: 48px;
+  margin-top: -24px;
+  border-radius: 50%;
+  background: conic-gradient(from 210deg, var(--live), color-mix(in srgb, var(--live) 45%, #FFD9A0), var(--live) 55%, var(--live));
+}
+.livechip__media { z-index: 1; width: 40px; height: 40px; box-shadow: 0 0 0 2px var(--surface); }
+.livechip b { font-weight: 700; }
+.livechip small { font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------------ */
+/* Event page                                                          */
+/* ------------------------------------------------------------------ */
+
+.hero__glow { display: none; }
+.hero__media { box-shadow: var(--shadow); }
+.hero.is-live .hero__media { box-shadow: var(--shadow); }
+.event__when { color: var(--primary-ink); }
+.event__by .org { color: var(--text); }
+.cta { border-color: var(--border); }
+/* Only the team-form variant needs its own scroller; elsewhere let the CTA's glow breathe. */
+.cta:not(.cta--more) { overflow: visible; }
+.cta__price b { font-weight: 800; letter-spacing: -0.02em; }
+.know li .i { color: var(--primary-ink); }
+/* Data stays neutral so the one maroon CTA leads the page. */
+.bars__fill { background: var(--text); }
+.facts { border-color: var(--border); }
+
+.invite__from { color: var(--primary-ink); }
+.fclear { color: var(--primary-ink); }
+.club-head__mark { background: var(--stage); color: var(--on-stage); font-stretch: 112%; }
+
+/* ------------------------------------------------------------------ */
+/* Wallet: the pass runs from IIT maroon into stage crimson            */
+/* ------------------------------------------------------------------ */
+
+.pass__stub, .mini-pass__stub {
+  background: linear-gradient(125deg, var(--maroon) 0%, var(--pass-end) 100%);
+  color: #FFFFFF;
+}
+.pass__stub { grid-template-columns: 56px minmax(0, 1fr) 24px; }
+.pass__stub .seal__fill, .mini-pass__stub .seal__fill { fill: #FFFFFF; }
+.pass__stub .seal__mark, .mini-pass__stub .seal__mark { stroke: var(--maroon); }
+.pass__stub:focus-visible { outline-color: var(--text); }
+.pass__title { font-weight: 800; letter-spacing: -0.025em; }
+.pass__when { opacity: 0.92; }
+.pass.is-past .pass__stub { background: var(--surface-2); color: var(--text); }
+.pass.is-past .pass__stub .seal__fill { fill: var(--primary); }
+.pass.is-past .pass__stub .seal__mark { stroke: var(--primary-contrast); }
+@media (prefers-color-scheme: dark) {
+  .pass:not(.is-past) { box-shadow: var(--shadow), 0 24px 56px -28px rgb(216 27 74 / 0.6); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Fests                                                               */
+/* ------------------------------------------------------------------ */
+
+.fest-head::before, .fest-card::before { display: none; }
+.fest-head--photo { background: var(--stage); }
+/* app.css's `.fest-head > * + *` margin pushed the photo 8px down, leaving a dark strip on top. */
+.fest-head--photo .fest-head__media { margin: 0; }
+.fest-head--photo h1 { font-weight: 800; letter-spacing: -0.035em; }
+.fest-head--photo .fest-head__dates > .i { color: var(--on-stage); }
+.fest-head--photo .fest-head__media { box-shadow: var(--shadow); }
+
+/* ------------------------------------------------------------------ */
+/* Motion preferences                                                  */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .pcard__art, .cat .media__img, .livechip { transition: none; }
+  .pcard:hover .pcard__art { transform: none; }
+  .cat:hover .media__img { transform: none; }
+}
