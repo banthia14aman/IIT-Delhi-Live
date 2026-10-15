@@ -109,9 +109,13 @@ def candidates():
     queries = json.loads((ROOT / "tools/image-queries.json").read_text())
     outdir = ROOT / "tools/candidates"
     outdir.mkdir(parents=True, exist_ok=True)
+    start = time.time()
     for key, qs in queries.items():
         if (outdir / f"{key}.json").exists():  # only fetch new categories
             continue
+        if time.time() - start > 20 * 60:  # commit what we have; the next run picks up the rest
+            print("time budget reached, stopping before", key)
+            break
         seen, cands = set(), []
         for q in qs:
             for c in openverse(q) + commons(q, 6):
