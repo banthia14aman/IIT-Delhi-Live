@@ -422,7 +422,7 @@ function priceChip(e) {
 }
 function eligChip(e) {
   if (e.eligibility === 'iitd_only') return `<span class="chip chip--iitd">${I.shield}IITD only</span>`;
-  if (iitdFirstActive(e)) return `<span class="chip chip--first">${I.star}${esc(eligShort(e))}</span>`;
+  if (iitdFirstActive(e)) return `<span class="chip chip--first chip--early">${I.star}${esc(eligShort(e))}</span>`;
   return `<span class="chip chip--open">${I.door}Open to all</span>`;
 }
 function chips(e, { featured = true, category = false } = {}) {
@@ -430,7 +430,7 @@ function chips(e, { featured = true, category = false } = {}) {
     priceChip(e),
     eligChip(e),
     e.team_max > 1 ? `<span class="chip chip--team">${I.users}Team of ${esc(teamSize(e))}</span>` : '',
-    featured && e.featured ? `<span class="chip chip--first">${I.star}Featured</span>` : '',
+    featured && e.featured ? `<span class="chip chip--first chip--featured">${I.star}Featured</span>` : '',
     category && e.category ? `<span class="chip chip--team">${esc(e.category)}</span>` : '',
   ].join('');
 }
@@ -441,7 +441,7 @@ function liveTag(label = 'Live') {
 /** The ticket stub carries the "when". It turns saffron while the event is happening. */
 function dateStub(e) {
   if (isLive(e)) {
-    return `<div class="stub stub--live" aria-hidden="true"><span class="stub__live"><span class="pulse"></span>LIVE</span><span class="stub__time">till ${esc(timeStr(endOf(e)))}</span></div>`;
+    return `<div class="stub stub--live" aria-hidden="true"><span class="stub__live"><span class="pulse"></span>LIVE</span><span class="stub__time">till ${esc(timeStr(endOf(e)).replace(' ', '\u00a0'))}</span></div>`;
   }
   if (!valid(e.starts_at)) return '<div class="stub" aria-hidden="true"><span class="stub__day">TBC</span></div>';
   const d = toDate(e.starts_at);
@@ -2144,7 +2144,7 @@ function viewAdmin() {
         <ul class="adm">${events.map((e) => {
           const canFeature = e.featured || e.club?.verified;
           return `<li>
-          <span class="adm__name"><a href="#/e/${enc(e.id)}">${esc(e.title)}</a>${e.featured ? ' <span class="chip chip--first">Featured</span>' : ''}<small class="muted">${esc(e.club?.name || '')} · ${esc(whenLabel(e.starts_at))}${canFeature ? '' : ' · club not verified'}</small></span>
+          <span class="adm__name"><a href="#/e/${enc(e.id)}">${esc(e.title)}</a>${e.featured ? ' <span class="chip chip--first chip--featured">Featured</span>' : ''}<small class="muted">${esc(e.club?.name || '')} · ${esc(whenLabel(e.starts_at))}${canFeature ? '' : ' · club not verified'}</small></span>
           <button class="btn btn--sm btn--ghost" data-action="feature" data-id="${esc(e.id)}" data-value="${e.featured ? '0' : '1'}" aria-pressed="${!!e.featured}"${canFeature ? '' : ' disabled'}>${e.featured ? 'Unfeature' : 'Feature'}</button>
         </li>`;
         }).join('')}</ul>

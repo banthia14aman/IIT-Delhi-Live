@@ -439,3 +439,90 @@ Added after the BookMyShow analysis (`research/BOOKMYSHOW_ANALYSIS.md`), to make
 - **Glow tokens:** `--glow-live`, `--glow-accent`, `--glow-primary`. Each is an offset, blurred light spill tinted by what is lit. Use them only on live items, featured / marigold CTAs and hover on photo cards. The spotlight and event hero also spill a blurred copy of their own photo beneath the card, so each slide lights the page in its own colours.
 - **Discovery layer (home):** spotlight carousel (live → featured → most going; auto-advances, pauses on touch/hover/focus, off under reduced motion) → happening-now strip → "Pick your vibe" category tiles → poster rails (Tonight, Trending, Fest season, Free this week, Level up, Compete) → "Browse every event".
 - **Motion:** the spotlight auto-advance and photo hover zoom are the only additions; both respect `prefers-reduced-motion`.
+
+
+## Theme v3 (stage): "Stage Black", the shipped theme (Oct 2026)
+
+Chosen in a four-way bake-off (Stage, Daylight, Neon, Heritage) after the v1 look was judged "off": a maroon-tinted black ground, too many competing warm hues, and photo glows clipped into hard slabs by scroll containers. Stage keeps the system's structure (tickets, stubs, the live pulse, the pass) and changes the colour, type and glow rules.
+
+**How it loads.** `site/index.html` loads `css/tokens.css` → `css/app.css` → `css/themes/stage.css` (`<link id="theme-css">`). **`tokens.css` still holds the v1 base tokens** (and its Google Fonts `@import`); `stage.css` redefines every contract token on `:root` and under `prefers-color-scheme: dark`, plus a few theme-local roles. Where this section and the v1 sections above disagree, `stage.css` wins.
+
+**Previewing the runners-up.** Add `?theme=<key>` before the hash, for example `index.html?theme=daylight#/`. An inline script after the theme link swaps its `href` to `css/themes/<key>.css` only when the key matches `/^[a-z]+$/` and is one of `stage`, `daylight`, `neon`, `heritage`. Anything else keeps Stage. The runner-up files and their fonts (`site/assets/fonts/<key>/`) are kept for comparison and are not maintained.
+
+### Concept
+The masthead and sticky tabs are a black stage in both modes, and event photos supply the colour. By night the whole ground is the stage, so the spotlight card and its photo glow sit on black. By day the house lights come up: white cards on `#F5F5F7`, with the spotlight card on the light ground, so light and dark look different above the fold. One owned accent, **IIT maroon, lit two ways**: maroon on page surfaces by day, crimson on anything black.
+
+### Palette
+
+| Role | Light | Dark | Used for |
+|---|---|---|---|
+| `--bg` / `--surface` / `--surface-2` | #F5F5F7 / #FFFFFF / #EDEDF0 | #0B0B0D / #151518 / #1F1F24 | ground, cards, calm chips |
+| `--text` / `--text-muted` / `--border` | #0B0B0D / #55555F / #DEDEE3 | #F5F5F7 / #A1A1AA / #2C2C33 | ink, meta, hairlines |
+| `--primary` (white text) | **#A8123E** IIT maroon, lifted | **#D81B4A** crimson | CTAs, active states, filter chip on, seal |
+| `--primary-ink` (theme-local) | #A8123E | #FF5A73 | links, event date line, urgency text, IITD chip icons |
+| `--crimson` (theme-local) | #D81B4A | #D81B4A | anything on black: the LIVE stamp, tab bars, spotlight Register, badges, search focus |
+| `--maroon` → `--pass-end` | #8A1538 → #C0103F | #8A1538 → #D81B4A | the wallet pass stub gradient |
+| `--accent` (ink text) | #FFB21E | #FFC23D | the Featured mark only |
+| `--live` (ink text) | #F2570A | #FF7A1F | happening now only: LIVE badges, live stub, live date band, ring on live chips |
+| `--stage` / `--on-stage` / `--on-stage-muted` | #0B0B0D / #FFFFFF / #D4D4D8 | #0B0B0D / #F5F5F7 / #D4D4D8 | masthead, scrims, ticket stubs |
+| success / warning / danger | #0A6F37 / #8A4F00 / #B42318 | #4ADE80 / #FBBF24 / #FF6B5E | status only |
+
+Live was moved from red-saffron to a more orange hue (16° → 20–24°) and the brand from box-office red to maroon-crimson (342–345°), so the LIVE pill and the Register button no longer sit next to each other in hue.
+
+**Colour rules in v3.**
+- *Calm chips.* Price, eligibility, team and category chips are neutral (`--surface-2`). IITD-only and IITD-first carry a maroon icon. Only **Featured** (marigold) and **LIVE** (saffron) are coloured. `ui.js` marks them `chip--featured` and `chip--early` (both still `chip--first` for the older themes).
+- *Urgency* ("Closes in 23h", "3 seats left") is `--primary-ink`, not ochre.
+- *Live cards* keep a neutral frame; the saffron stub carries LIVE.
+- *Brand.* The wordmark is "IITD" in white plus a crimson **LIVE** stamp tilted −4°. The mark is a white ticket with a crimson live dot. `assets/icon.svg` (favicon and PWA icon) is the same ticket on a black tile. `theme-color` (both modes) and the manifest `theme_color` / `background_color` are #0B0B0D.
+
+### Typography
+Archivo (Omnibus-Type, SIL OFL 1.1), self-hosted from `@fontsource-variable/archivo` 5.3.0 and trimmed to wght 400–850 and wdth 100–115: `assets/fonts/stage/archivo-latin-var.woff2` (57.5 KB) plus a ₹-only subset `archivo-rupee-var.woff2` (1.4 KB, `unicode-range: U+20B9`). That is about 59 KB with `font-display: swap`. Display text (h1, h2, rail titles, spotlight and fest titles, prices, pass title, wordmark) runs at `font-stretch: 112%` and weight 800. Body runs at 100% width. Pass codes keep Atkinson Hyperlegible Mono from `tokens.css`.
+
+### Signature components in v3
+- **Poster card:** a ticket-shaped white price tag (top left, wide 800 caps "FREE" / "₹199", notches cut with a CSS mask) and a one-line black **date band** across the foot of the photo ("Fri, 16 Oct · 9:00 PM"; it never wraps). The band turns saffron for "Live now".
+- **Section heads:** a 2px `--text` rule over each rail title, poster-style, with tighter rail spacing (24px between rails).
+- **Fest tile:** dates on a white ticket tag ("15–17 OCT 2026"). A tile without its photo falls back to a lit black stage, not a flat gradient.
+- **List card stub:** 72px wide and black (`#26262C` at night). The live stub is saffron and breaks as "till / 11:00 PM" (`ui.js` joins the time with a no-break space).
+- **Wallet pass:** a maroon → crimson stub with white text; at night it casts a faint crimson light.
+
+### Glow rules
+1. **Nothing glows inside a scroll container** unless its light is drawn inside the item or the scroller fades it out. `overflow-x: auto` also clips the y axis, so any `box-shadow` or blurred layer near a scroller's edge becomes a hard slab.
+2. **The spotlight photo spill** (`.slide__glow`, a blurred copy of the slide photo) is the main glow. Each slide reserves 64px (72px on desktop) of bottom padding for it, and `.spot__track` carries `mask-image: linear-gradient(#000 calc(100% - 44px), transparent)`, so the spill fades out before the clip line. Opacity is .5 by day, where it reads as a soft coloured shadow, and .9 at night, where it also spills sideways on desktop. A 1px inset white ring (12%) keeps the card's frame where the scrim meets the black ground.
+3. **Allowed glows:** the spotlight Register (`--glow-crimson`), the event-page CTA (`--glow-primary`), the LIVE stamp in the wordmark, and LIVE badges outside scrollers (`--glow-live`). The live signal on "Happening now" chips is a saffron conic ring drawn inside the chip.
+4. **Not allowed:** glow on poster, category or fest tiles (hover is a 2px lift or an image zoom), and the old `.hero__glow` under the event and fest heroes (removed).
+
+### Contrast (WCAG 2.2, computed from `stage.css`; tints are sRGB `color-mix`)
+
+| Pair | Light | Dark | Need |
+|---|---|---|---|
+| text / bg | 18.06 | 18.06 | 4.5 |
+| text / surface | 19.66 | 16.74 | 4.5 |
+| text / surface-2 (calm chips) | 16.83 | 15.07 | 4.5 |
+| muted / bg | 6.77 | 7.67 | 4.5 |
+| muted / surface | 7.37 | 7.11 | 4.5 |
+| muted / surface-2 (Open, Team chips) | 6.30 | 6.40 | 4.5 |
+| white / `--primary` (CTA, filter chip on) | 7.44 | 5.03 | 4.5 |
+| `--primary-ink` / bg (links, date line, urgency) | 6.84 | 6.52 | 4.5 |
+| `--primary-ink` / surface | 7.44 | 6.04 | 4.5 |
+| `--primary-ink` / primary tint (10% light, 18% dark) | 6.22 | 5.34 | 4.5 |
+| white / crimson #D81B4A (LIVE stamp, spotlight CTA, badge) | 5.03 | 5.03 | 4.5 |
+| white / maroon #8A1538 (pass start) | 9.35 | 9.35 | 4.5 |
+| white / pass end (#C0103F light, #D81B4A dark) | 6.20 | 5.03 | 4.5 |
+| ink / marigold (Featured) | 10.45 | 11.71 | 4.5 |
+| ink / live (LIVE badge, stub, date band) | 5.52 | 7.24 | 4.5 |
+| success / its tint | 5.43 | 7.18 | 4.5 |
+| warning / its tint | 5.65 | 7.35 | 4.5 |
+| danger / surface | 6.57 | 6.52 | 4.5 |
+| masthead tab (white .64) / stage | 8.18 | 8.18 | 4.5 |
+| search placeholder #A1A1AA / #1C1C21 | 6.62 | 6.62 | 4.5 |
+| on-stage / worst-case scrim (white photo under .72 black) | 8.17 | 7.51 | 4.5 |
+| on-stage-muted / worst-case scrim | 5.53 | 5.53 | 4.5 |
+| on-stage / date band (.88 black over a white photo) | 14.71 | 13.51 | 4.5 |
+| ink / white price and date tags | 19.66 | 19.66 | 4.5 |
+| `--primary` focus ring / bg (non-text) | 6.84 | 3.91 | 3.0 |
+| crimson tab bar / stage (non-text) | 3.91 | 3.91 | 3.0 |
+| live dot / bg (non-text) | 3.14 | 7.54 | 3.0 |
+| live ring / surface (non-text) | 3.42 | 6.99 | 3.0 |
+| marigold Featured fill / surface (non-text) | **1.80** | 11.31 | 3.0 |
+
+The one exception is the same as in v1: a marigold fill on white is not a boundary on its own. It always carries ink text and a star (10.45:1), so the meaning never depends on the fill.

@@ -1,0 +1,432 @@
+/* IITD Live theme: "Heritage Modern".
+   Loaded after app.css. Premium institutional trust with fest energy: a top university's
+   fest site that sells tickets like a modern box office.
+
+   Colour roles (three hues, each with one job):
+   - IIT Delhi maroon #7C1D2F: identity and the primary action. It owns the light masthead,
+     the date stubs, primary buttons and the selected state. In dark mode it stays a fill
+     (#9C2940, white text) and only text, links and focus rings lift to a rose (#F0909E),
+     because a deep maroon would fail contrast as text on charcoal.
+   - Antique gold #D1A23A / #DDB04D: celebration and privilege. The pass, Featured,
+     IITD-first, the spotlight CTA, the active-tab rule and the "Live" in the wordmark.
+   - Saffron #E8590C / #FF7433: happening now, and nothing else.
+   Grounds are neutral: a cool light grey page with white cards by day, a charcoal
+   (#121214) night. Photos carry the rest of the colour.
+
+   Glow: an offset, blurred spill tinted by what is lit, used only on the gold CTA,
+   featured marks and LIVE. Anything inside a scrolling track (spotlight, rails, the
+   happening-now strip) gets a shadow sized to fit that track's padding, so nothing is
+   ever clipped into a hard-edged slab. The blurred-photo spills are retired.
+
+   Type: Eczar (Rosetta, OFL; designed in India by Vaibhav Singh for Devanagari + Latin
+   display) for titles and section heads: wedge serifs with festival-poster energy and a
+   native rupee sign. Figtree (OFL) for body: crisp, open, and also ₹-complete.
+   Latin files 26 KB + 20 KB, plus two ~1 KB ₹-only subsets. Pass codes keep --font-mono. */
+
+@font-face {
+  font-family: "IITD Eczar";
+  src: url("../../assets/fonts/heritage/eczar-latin-wght.woff2") format("woff2");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IITD Eczar";
+  src: url("../../assets/fonts/heritage/eczar-rupee-wght.woff2") format("woff2");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20B9;
+}
+@font-face {
+  font-family: "IITD Figtree";
+  src: url("../../assets/fonts/heritage/figtree-latin-wght.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IITD Figtree";
+  src: url("../../assets/fonts/heritage/figtree-rupee-wght.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20B9;
+}
+
+/* ------------------------------------------------------------------ */
+/* Tokens                                                              */
+/* ------------------------------------------------------------------ */
+
+:root {
+  color-scheme: light dark;
+
+  --bg: #F1F2F4;               /* cool light grey page */
+  --surface: #FFFFFF;
+  --surface-2: #E8EAEE;
+  --text: #16161A;
+  --text-muted: #53555E;
+  --border: #D9DCE2;
+
+  --primary: #7C1D2F;          /* IIT Delhi maroon */
+  --primary-contrast: #FFFFFF;
+  --accent: #D1A23A;           /* antique gold: fill only on light grounds */
+  --accent-contrast: #1E1503;  /* ink on gold AND on saffron, both modes */
+
+  --success: #11703F;
+  --warning: #8A5200;
+  --danger: #B42318;
+  --live: #E8590C;             /* saffron: happening now only */
+
+  --font-display: "IITD Eczar", Georgia, "Times New Roman", serif;
+  --font-body: "IITD Figtree", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+
+  --shadow-sm: 0 1px 2px rgb(16 18 27 / 0.06), 0 1px 3px rgb(16 18 27 / 0.08);
+  --shadow: 0 14px 30px -14px rgb(16 18 27 / 0.28), 0 2px 6px rgb(16 18 27 / 0.06);
+
+  --stage: #0B0B0D;
+  --on-stage: #FFFFFF;
+  --on-stage-muted: #EDEDF0;
+  --scrim: linear-gradient(180deg, rgb(10 10 12 / 0) 0%, rgb(10 10 12 / 0.18) 28%, rgb(10 10 12 / 0.62) 52%, rgb(10 10 12 / 0.88) 76%, rgb(10 10 12 / 0.95) 100%);
+
+  --glow-live: 0 4px 14px -4px color-mix(in srgb, var(--live) 60%, transparent), 0 0 0 1px rgb(232 89 12 / 0.45);
+  --glow-accent: 0 8px 22px -8px rgb(209 162 58 / 0.75);
+  --glow-primary: 0 10px 24px -10px rgb(124 29 47 / 0.6);
+
+  /* Theme-local roles. */
+  --h-fill: #7C1D2F;           /* maroon fill: buttons, stubs, selected chips */
+  --h-fill-hover: #651726;
+  --h-on-fill: #FFFFFF;
+  --h-mast: #7C1D2F;           /* masthead + spotlight stage band */
+  --h-gold-hi: #DDB04D;        /* gold as text/rule on maroon or charcoal (5.0:1 on maroon) */
+  --h-trim: #C99A2E;           /* the gold rule under the masthead on pages without feed tabs */
+  --h-rail-shadow: 0 8px 18px -10px rgb(16 18 27 / 0.38);
+  --h-rail-shadow-hover: 0 12px 20px -12px rgb(16 18 27 / 0.45);
+  --h-photo-ink: 10 10 12;     /* rgb of overlays on photos */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #121214;             /* neutral charcoal, not maroon-black */
+    --surface: #1C1C1F;
+    --surface-2: #27272B;
+    --text: #F4F4F5;
+    --text-muted: #A9A9B2;
+    --border: #323238;
+
+    --primary: #F0909E;        /* maroon lifted to rose: text, links, focus rings only */
+    --primary-contrast: #1E0A0F;
+    --accent: #DDB04D;
+    --accent-contrast: #1E1503;
+
+    --success: #5BD08B;
+    --warning: #F2C04F;
+    --danger: #FF7D70;
+    --live: #FF7433;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.5);
+    --shadow: 0 16px 34px -14px rgb(0 0 0 / 0.8), 0 2px 6px rgb(0 0 0 / 0.4);
+
+    --glow-live: 0 4px 16px -4px rgb(255 116 51 / 0.65), 0 0 0 1px rgb(255 116 51 / 0.5);
+    --glow-accent: 0 8px 24px -8px rgb(221 176 77 / 0.6);
+    --glow-primary: 0 10px 26px -10px rgb(196 52 78 / 0.7);
+
+    --h-fill: #9C2940;
+    --h-fill-hover: #AE3149;
+    --h-mast: #1C1C1F;
+    --h-trim: #323238;
+    --h-rail-shadow: 0 8px 18px -10px rgb(0 0 0 / 0.8);
+    --h-rail-shadow-hover: 0 12px 20px -12px rgb(0 0 0 / 0.9);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Base type                                                           */
+/* ------------------------------------------------------------------ */
+
+h1, h2, h3 { font-weight: 700; }
+h1 { font-weight: 700; letter-spacing: -0.015em; line-height: 1.04; }
+.h-headline { font-weight: 700; letter-spacing: -0.012em; }
+h2 { font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-weight: 600; letter-spacing: -0.005em; }
+legend, .empty__title, .empty h1 { font-weight: 700; }
+
+::selection { background: color-mix(in srgb, var(--accent) 32%, var(--surface)); color: var(--text); }
+
+/* ------------------------------------------------------------------ */
+/* Masthead: maroon by day with a gold trim, charcoal at night         */
+/* ------------------------------------------------------------------ */
+
+.topbar { background: var(--h-mast); box-shadow: inset 0 -2px 0 var(--h-trim); }
+body:has(.tabs--mast) .topbar { box-shadow: none; }
+/* app.css's later .tabs rule re-adds a grey bottom border; it showed as a seam against the stage band. */
+.tabs--mast { background: var(--h-mast); border-bottom: 0; box-shadow: var(--shadow-sm); }
+.tabs--mast .tab { font-weight: 600; letter-spacing: 0.005em; }
+.tabs--mast .tab[aria-current="page"] { font-weight: 700; }
+.tabs--mast .tab[aria-current="page"]::after { background: var(--h-gold-hi); height: 3px; }
+/* The live dot on maroon gets a white ring so saffron never touches maroon directly. */
+.tab__live { display: inline-block; width: 7px; height: 7px; margin-left: 7px; border-radius: 50%; background: var(--live); box-shadow: 0 0 0 2px var(--primary-contrast); vertical-align: 0.18em; }
+
+.brand { gap: 10px; }
+.brand__mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  /* The app mark redrawn in this palette: a maroon pass on a gold tile. */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='120' fill='%23DDB04D'/%3E%3Cpath fill='%237C1D2F' d='M124 150h264a28 28 0 0 1 28 28v48a30 30 0 0 0 0 60v48a28 28 0 0 1-28 28H124a28 28 0 0 1-28-28v-48a30 30 0 0 0 0-60v-48a28 28 0 0 1 28-28z'/%3E%3Cpath d='M322 178v156' stroke='%23DDB04D' stroke-width='12' stroke-linecap='round' stroke-dasharray='1 26'/%3E%3Ccircle cx='206' cy='256' r='36' fill='%23DDB04D'/%3E%3Ccircle cx='206' cy='256' r='70' fill='none' stroke='%23DDB04D' stroke-width='18'/%3E%3C/svg%3E") center / cover no-repeat;
+  box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.45);
+}
+.brand__name { font-weight: 700; font-size: 1.375rem; letter-spacing: -0.01em; line-height: 1; padding-top: 3px; }
+.brand__name b { font-weight: 700; color: var(--h-gold-hi); }
+
+.account { font-weight: 600; }
+
+@media (prefers-color-scheme: dark) {
+  .topbar { background: var(--h-mast); box-shadow: inset 0 -1px 0 var(--border); }
+  .brand__name b { color: var(--h-gold-hi); }
+  .tabs--mast { background: var(--h-mast); border-bottom: 0; }
+  .tabs--mast .tab[aria-current="page"]::after { background: var(--h-gold-hi); }
+  .tab__live { box-shadow: none; }
+}
+
+@media (min-width: 1000px) {
+  .topnav a { font-weight: 600; opacity: 0.84; }
+  .topnav a[aria-current="page"] { font-weight: 700; }
+  .topnav a[aria-current="page"]::after { background: var(--h-gold-hi); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Buttons and selected states                                         */
+/* ------------------------------------------------------------------ */
+
+.btn { font-weight: 700; letter-spacing: 0.005em; }
+.btn--glow { background: var(--accent); color: var(--accent-contrast); box-shadow: var(--glow-accent); }
+.btn--glow:hover { background: color-mix(in srgb, var(--accent) 86%, #fff); box-shadow: 0 12px 30px -8px rgb(221 176 77 / 0.85); }
+
+/* In dark mode --primary is a rose for text; fills stay maroon with white text. */
+@media (prefers-color-scheme: dark) {
+  .btn:not(.btn--ghost, .btn--ok, .btn--danger, .btn--wa, .btn--glow, :disabled, [aria-disabled="true"]) { background: var(--h-fill); color: var(--h-on-fill); }
+  .btn:not(.btn--ghost, .btn--ok, .btn--danger, .btn--wa, .btn--glow, :disabled, [aria-disabled="true"]):hover { background: var(--h-fill-hover); }
+  .fchip[aria-pressed="true"], .fchip.is-on { color: var(--h-on-fill); }
+  .fchip[aria-pressed="true"]::before, .fchip.is-on::before { background: var(--h-fill); border-color: var(--h-fill); }
+  .seg input:checked + span { background: var(--h-fill); border-color: var(--h-fill); color: var(--h-on-fill); }
+  .club-head__mark { background: var(--h-fill); color: var(--h-on-fill); }
+}
+@media (prefers-color-scheme: light) {
+  .btn:not(.btn--ghost, .btn--ok, .btn--danger, .btn--wa, .btn--glow, :disabled, [aria-disabled="true"]):hover { background: var(--h-fill-hover); }
+}
+
+/* The register button on the event page is the primary CTA: it gets the maroon light spill. */
+.cta .btn:not(.btn--ghost, .btn--ok, .btn--danger, .btn--wa, :disabled, [aria-disabled="true"]) { box-shadow: var(--glow-primary); }
+
+/* ------------------------------------------------------------------ */
+/* Chips                                                               */
+/* ------------------------------------------------------------------ */
+
+.chip, .status, .idchip { font-weight: 600; letter-spacing: 0.01em; }
+.chip--first, .chip--tbc { font-weight: 700; }
+.chip--paid { font-weight: 700; }
+.fchip { font-weight: 600; }
+.fchip[aria-pressed="true"], .fchip.is-on { font-weight: 700; }
+
+/* ------------------------------------------------------------------ */
+/* Spotlight: one loud thing per screen, on a maroon stage band        */
+/* ------------------------------------------------------------------ */
+
+.slide__glow, .hero__glow { display: none; }
+
+/* Full-bleed everywhere so the card's shadow always has 16px of room inside the track. */
+.spot { isolation: isolate; margin-inline: calc(var(--space-4) * -1) !important; }
+.spot::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  top: -24px;
+  height: calc(34% + 24px);
+  background: var(--h-mast);
+  /* Paint the band edge to edge without adding scrollable width. */
+  box-shadow: 0 0 0 100vmax var(--h-mast);
+  clip-path: inset(0 -100vmax);
+}
+.spot__track { padding-top: 4px; }
+.slide { padding: 0 var(--space-4) var(--space-6); }
+.slide__card { border-radius: var(--radius-lg); }
+.slide__media { box-shadow: 0 18px 28px -18px rgb(0 0 0 / 0.55), 0 2px 6px rgb(0 0 0 / 0.12); }
+.slide.is-live .slide__media { box-shadow: 0 0 0 2px var(--live), 0 16px 26px -16px color-mix(in srgb, var(--live) 70%, transparent); }
+.slide__body { padding: var(--space-6) var(--space-4) var(--space-4); }
+.slide__when { font-weight: 600; letter-spacing: 0.01em; }
+.slide__when .live { box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--live) 70%, transparent); }
+.slide__title { font-weight: 700; letter-spacing: -0.02em; line-height: 0.98; }
+.slide__sub { font-weight: 500; }
+.slide__price { font-weight: 700; letter-spacing: -0.01em; }
+.slide__price small { font-weight: 500; }
+.slide .seal__fill { fill: var(--h-gold-hi); }
+.slide__cta .btn { min-width: 132px; }
+/* Long titles push the meta line up into thinner scrim; a tight shadow keeps it legible on bright photos. */
+.slide__when > span:not(.live), .slide__title, .slide__sub, .slide__price, .ftile__dates, .ftile__tag, .fest-head--photo h1, .fest-head--photo .lede, .fest-head--photo .fest-head__dates { text-shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 0 12px rgb(0 0 0 / 0.25); }
+
+.spot__dots { margin-top: calc(var(--space-5) * -1) !important; }
+.spot__dot::before { background: color-mix(in srgb, var(--text-muted) 45%, var(--bg)); }
+.spot__dot[aria-current="true"]::before { background: var(--accent); box-shadow: 0 3px 8px -2px rgb(209 162 58 / 0.7); }
+
+@media (min-width: 720px) {
+  .slide { padding: 0 var(--space-4) var(--space-6); }
+  .slide__body { padding: var(--space-6) var(--space-6) var(--space-5); }
+}
+@media (min-width: 1000px) {
+  .spot::before { height: calc(30% + 24px); }
+  .slide__title { font-size: 3.5rem; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Happening now: clean tickets, the saffron ring drawn inside each one */
+/* ------------------------------------------------------------------ */
+
+.livestrip { gap: var(--space-2) var(--space-3); margin-top: var(--space-5) !important; }
+.livestrip__label .live { box-shadow: var(--glow-live); }
+.livestrip__track { padding: 4px 4px 8px; margin-right: 0; scroll-padding-inline: 4px; gap: var(--space-2); }
+.livechip {
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: 6px var(--space-4) 6px 8px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 200ms ease;
+}
+.livechip:hover { border-color: color-mix(in srgb, var(--live) 55%, var(--border)); }
+.livechip:focus-visible { outline-offset: -3px; }
+.livechip__media { width: 36px; height: 36px; outline: 2px solid var(--live); outline-offset: 2px; }
+.livechip b { font-weight: 700; font-size: 0.9375rem; }
+.livechip small { font-size: 0.8125rem; }
+
+/* On wide screens the track ends inside the column: fade its edge so the cut reads as "more". */
+@media (min-width: 720px) {
+  .livestrip__track { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); padding-right: 40px; }
+}
+@media (max-width: 719px) {
+  .livestrip { flex-direction: column; align-items: flex-start; }
+  .livestrip__track { align-self: stretch; margin-inline: calc(var(--space-4) * -1); padding: 4px var(--space-4) 8px; scroll-padding-inline: var(--space-4); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Rails: shadows sized to fit the track padding                       */
+/* ------------------------------------------------------------------ */
+
+.rail { margin-top: var(--space-5) !important; }
+.rail__head { margin-bottom: var(--space-2); }
+.rail__title { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.012em; line-height: 1.1; }
+.rail__more { font-weight: 700; }
+.rail__track { padding: var(--space-2) var(--space-4) var(--space-5); }
+
+.pcard__art { box-shadow: var(--h-rail-shadow); transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease; }
+.pcard__art::after { background: linear-gradient(180deg, rgb(var(--h-photo-ink) / 0.5) 0%, transparent 30%, transparent 60%, rgb(var(--h-photo-ink) / 0.55)); }
+@media (hover: hover) {
+  .pcard:hover .pcard__art { transform: translateY(-3px); box-shadow: var(--h-rail-shadow-hover); }
+}
+.pcard.is-live .pcard__art { box-shadow: 0 0 0 2px var(--live), 0 8px 16px -8px color-mix(in srgb, var(--live) 60%, transparent); }
+.pcard__when, .pcard__price, .pcard__feat { font-weight: 700; }
+.pcard__when { background: rgb(var(--h-photo-ink) / 0.74); color: var(--on-stage); border-radius: var(--radius-sm); padding: 4px 8px; line-height: 1.25; }
+.pcard__when--live { background: var(--live); color: var(--accent-contrast); box-shadow: 0 3px 10px -3px rgb(0 0 0 / 0.5); }
+.pcard__feat { background: var(--accent); box-shadow: 0 3px 10px -3px rgb(0 0 0 / 0.5); }
+.pcard__price {
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  letter-spacing: 0;
+  min-height: 28px;
+  box-shadow: 0 3px 10px -3px rgb(0 0 0 / 0.45);
+}
+.pcard__body { padding-top: 10px; }
+.pcard__title { font-family: var(--font-display); font-weight: 600; font-size: 1.0625rem; line-height: 1.2; letter-spacing: -0.005em; }
+.pcard__where { font-size: 0.8125rem; }
+.pcard__elig { font-weight: 600; }
+
+.cat { box-shadow: var(--h-rail-shadow); transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease; }
+.cat::after { background: linear-gradient(180deg, transparent 38%, rgb(var(--h-photo-ink) / 0.86)); }
+.cat__name { font-weight: 700; font-size: 1.0625rem; letter-spacing: -0.005em; }
+@media (hover: hover) { .cat:hover { transform: translateY(-3px); box-shadow: var(--h-rail-shadow-hover); } }
+
+.ftile { box-shadow: var(--h-rail-shadow); }
+.ftile::after { height: 4px; background: var(--h-gold-hi); box-shadow: none; }
+.ftile__dates { color: var(--h-gold-hi); letter-spacing: 0.01em; }
+.ftile__name { font-weight: 700; letter-spacing: -0.015em; }
+@media (hover: hover) { .ftile:hover { box-shadow: var(--h-rail-shadow-hover); } }
+
+/* ------------------------------------------------------------------ */
+/* Ticket cards (lists)                                                */
+/* ------------------------------------------------------------------ */
+
+.card__art::after { background: linear-gradient(180deg, transparent 55%, rgb(var(--h-photo-ink) / 0.32)); }
+.stub:not(.stub--live, .stub--past) { background: var(--h-fill); color: var(--h-on-fill); }
+.stub:not(.stub--live, .stub--past)::after { border-right-color: color-mix(in srgb, var(--h-on-fill) 50%, var(--h-fill)); }
+.stub__day, .stub__month { letter-spacing: 0.06em; }
+.stub__date { font-weight: 700; font-size: 1.875rem; line-height: 0.95; }
+.card__title { font-weight: 600; font-size: 1.1875rem; line-height: 1.2; }
+.card.is-live { box-shadow: var(--glow-live); }
+
+/* ------------------------------------------------------------------ */
+/* Event page                                                          */
+/* ------------------------------------------------------------------ */
+
+.hero__media { box-shadow: var(--shadow); }
+.hero.is-live .hero__media { box-shadow: 0 0 0 2px var(--live), 0 14px 28px -14px color-mix(in srgb, var(--live) 65%, transparent); }
+.event__head h1 { font-size: clamp(2rem, 7vw, 2.75rem); }
+.event__when { font-weight: 700; letter-spacing: 0.005em; }
+.event__by .org { font-weight: 700; }
+.cta__price b { font-weight: 700; font-size: 1.5rem; letter-spacing: -0.01em; }
+.cta { border-color: var(--border); }
+.facts dt { font-weight: 600; }
+.prose h2, .going h2, .know h2 { font-size: 1.375rem; }
+
+/* ------------------------------------------------------------------ */
+/* Pass: the gold ticket                                               */
+/* ------------------------------------------------------------------ */
+
+.pass { box-shadow: var(--shadow); }
+.pass__stub { grid-template-columns: 56px minmax(0, 1fr) 24px; }
+.pass__title { font-weight: 700; letter-spacing: -0.012em; line-height: 1.12; }
+.pass__name { font-weight: 600; }
+.mini-pass__text b { font-weight: 700; }
+@media (prefers-color-scheme: dark) {
+  /* At night the gold stub throws a little light onto the ground. */
+  .pass:not(.is-past) { box-shadow: var(--shadow), 0 18px 40px -22px rgb(221 176 77 / 0.45); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Fests                                                               */
+/* ------------------------------------------------------------------ */
+
+.fest-head--photo { box-shadow: var(--shadow); }
+.fest-head--photo .fest-head__media { margin: 0; }
+.fest-head--photo h1 { font-weight: 700; letter-spacing: -0.02em; }
+.fest-head--photo .fest-head__dates > .i { color: var(--h-gold-hi); }
+.fest-head::before, .fest-card::before { background: var(--accent); }
+.fest-card__name { font-weight: 700; }
+.strip__nums b { font-weight: 700; }
+.verdict__name { font-weight: 700; }
+.club-head__mark { font-weight: 700; }
+
+/* ------------------------------------------------------------------ */
+/* Bottom navigation                                                   */
+/* ------------------------------------------------------------------ */
+
+.tabbar a { font-weight: 600; }
+.tabbar a[aria-current="page"] { font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pcard__art, .cat { transition: none; }
+  .pcard:hover .pcard__art, .cat:hover { transform: none; }
+}

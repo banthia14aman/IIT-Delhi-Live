@@ -1,0 +1,698 @@
+/* ==================================================================
+   IITD Live theme: "Daylight Poster"
+   The SAC noticeboard on a bright afternoon. Warm paper, near-black ink,
+   oversized condensed headlines, IIT Delhi maroon as the ink of the brand
+   and its actions, marigold as poster tape (price, featured, active tab).
+   Energy comes from type scale, photographs and solid colour blocks.
+   Only things happening right now glow.
+
+   Loaded after app.css. Redefines the contract tokens (light + dark) and
+   restyles components. Fonts are self-hosted (SIL OFL 1.1, see
+   assets/fonts/daylight/OFL-LICENSES.txt), about 135 KB of woff2:
+     Big Shoulders Display (display, variable 100-900, latin + latin-ext for ₹)
+     Atkinson Hyperlegible Next (body, variable 200-800, latin + latin-ext for ₹)
+     Atkinson Hyperlegible Mono (pass codes, latin)
+   ================================================================== */
+
+@font-face {
+  font-family: "Daylight Display";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../../assets/fonts/daylight/big-shoulders-display-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Daylight Display";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../../assets/fonts/daylight/big-shoulders-display-latin-ext-wght-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Daylight Text";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../../assets/fonts/daylight/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Daylight Text";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../../assets/fonts/daylight/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Daylight Mono";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../../assets/fonts/daylight/atkinson-hyperlegible-mono-latin-wght-normal.woff2") format("woff2");
+}
+
+/* ------------------------------------------------------------------ */
+/* Tokens                                                              */
+/* ------------------------------------------------------------------ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Paper and ink */
+  --bg: #FBF8F3;               /* poster paper */
+  --surface: #FFFFFF;          /* card stock */
+  --surface-2: #F2ECE2;        /* kraft: chips, inputs at rest, skeletons */
+  --text: #1A1612;             /* ink */
+  --text-muted: #5C5349;       /* pencil: meta lines, input borders (7.5:1) */
+  --border: #E3DBCE;           /* hairline dividers (decorative) */
+
+  --primary: #8A1538;          /* IIT Delhi maroon: brand ink, actions, links, focus */
+  --primary-contrast: #FFFDF8;
+  --accent: #FFB81C;           /* marigold tape: price, featured, active tab. Fill only */
+  --accent-contrast: #1A1612;
+
+  --success: #106B3C;
+  --warning: #8A4F00;
+  --danger: #B3261E;
+  --live: #F04A0E;             /* saffron: happening now, and nothing else */
+
+  --font-display: "Daylight Display", "Big Shoulders Display", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Daylight Text", "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-mono: "Daylight Mono", "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Printed, not inflated: tight corners. */
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 2px rgb(26 22 18 / 0.08);
+  --shadow: 0 14px 26px -16px rgb(26 22 18 / 0.42), 0 2px 4px rgb(26 22 18 / 0.06);
+
+  /* Photos carry text on a neutral ink scrim in both modes. */
+  --stage: #14120F;
+  --on-stage: #FFFDF8;
+  --on-stage-muted: #EAE3D8;
+  --scrim: linear-gradient(180deg, rgb(20 18 15 / 0) 0%, rgb(20 18 15 / 0.08) 34%, rgb(20 18 15 / 0.7) 64%, rgb(20 18 15 / 0.95) 100%);
+
+  /* Only live glows. The other two are plain lifts so legacy uses stay calm. */
+  --glow-live: 0 6px 20px -4px rgb(240 74 14 / 0.6), 0 0 0 1px rgb(240 74 14 / 0.4);
+  --glow-accent: 0 6px 14px -8px rgb(26 22 18 / 0.45);
+  --glow-primary: 0 6px 14px -8px rgb(26 22 18 / 0.45);
+
+  /* Theme-local */
+  --rule: #1A1612;             /* crisp 1px ink rules */
+  --maroon: #8A1538;           /* brand block fill (stub, wordmark stamp) in both modes */
+  --paper: #FFFDF8;            /* text on maroon blocks */
+  --lift: 0 6px 14px -8px rgb(26 22 18 / 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* The same poster, pasted on a black wall at night. Neutral ink, no maroon tint. */
+    --bg: #111110;
+    --surface: #1C1B19;
+    --surface-2: #292724;
+    --text: #F6F1E7;            /* paper-white */
+    --text-muted: #ADA597;
+    --border: #3A3733;
+
+    /* Maroon can't be text on black, so marigold carries action at night;
+       maroon stays as solid brand blocks (stub, stamp, IITD chip). */
+    --primary: #FFC23D;
+    --primary-contrast: #1A1612;
+    --accent: #FFC23D;
+    --accent-contrast: #1A1612;
+
+    --success: #4CD68E;
+    --warning: #FFB070;
+    --danger: #FF6F61;
+    --live: #FF7A2E;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.5);
+    --shadow: 0 16px 30px -16px rgb(0 0 0 / 0.8), 0 2px 6px rgb(0 0 0 / 0.4);
+
+    --glow-live: 0 6px 22px -4px rgb(255 122 46 / 0.7), 0 0 0 1px rgb(255 122 46 / 0.5);
+    --glow-accent: 0 6px 14px -8px rgb(0 0 0 / 0.7);
+    --glow-primary: 0 6px 14px -8px rgb(0 0 0 / 0.7);
+
+    --rule: #4D4842;
+    --maroon: #A3214B;
+    --paper: #F6F1E7;
+    --lift: 0 8px 16px -8px rgb(0 0 0 / 0.8);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Base and browser surfaces                                           */
+/* ------------------------------------------------------------------ */
+
+body { background: var(--bg); color: var(--text); }
+::selection { background: var(--accent); color: var(--accent-contrast); }
+html { scrollbar-color: color-mix(in srgb, var(--text-muted) 60%, transparent) transparent; }
+
+/* Display voice: condensed caps, set big and tight. */
+h1, h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+}
+h1 { font-size: clamp(2.5rem, 11vw, 4rem); line-height: 0.9; }
+.h-headline { font-size: clamp(2.5rem, 11vw, 3.75rem); line-height: 0.9; letter-spacing: 0.005em; }
+h2 { font-size: 1.75rem; line-height: 0.95; font-weight: 800; }
+/* Small titles read better in the text face. */
+h3 { font-family: var(--font-body); font-weight: 700; letter-spacing: -0.005em; text-transform: none; }
+
+a { color: var(--primary); }
+
+/* ------------------------------------------------------------------ */
+/* Masthead: paper, a big wordmark, ink rule                           */
+/* ------------------------------------------------------------------ */
+
+.topbar {
+  background: var(--bg);
+  color: var(--text);
+  border-bottom: 2px solid var(--rule);
+}
+.topbar :focus-visible { outline-color: var(--primary); }
+.topbar__inner { padding: var(--space-2) var(--space-4) var(--space-3); }
+
+.brand { gap: 10px; }
+.brand__mark { width: 32px; height: 32px; border-radius: 7px; box-shadow: none; }
+.brand__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 2rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+/* "LIVE" is a maroon stamp, in both modes. */
+.brand__name b {
+  display: inline-block;
+  padding: 3px 7px 2px;
+  border-radius: 3px;
+  background: var(--maroon);
+  color: var(--paper);
+  font-weight: 900;
+  transform: rotate(-3deg);
+}
+
+.search input {
+  border: 1.5px solid var(--text-muted);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+.search input::placeholder { color: var(--text-muted); }
+.search__icon { color: var(--text-muted); }
+.search input:focus { background: var(--surface); color: var(--text); border-color: var(--primary); }
+.search input:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent); }
+
+.account {
+  color: var(--text);
+  border: 1.5px solid var(--rule);
+  border-radius: var(--radius);
+}
+@media (prefers-color-scheme: dark) { .account { border-color: var(--text-muted); } }
+.account:hover { background: var(--surface-2); }
+.account--avatar { background: var(--accent); color: var(--accent-contrast); border: 1.5px solid var(--accent-contrast); border-radius: 50%; }
+.account--avatar:hover { background: var(--accent); box-shadow: var(--lift); }
+
+/* Feed tabs: sticky strip under the masthead; the active tab is a strip of marigold tape. */
+.tabs--mast {
+  background: var(--bg);
+  border-bottom: 1px solid var(--rule);
+  box-shadow: none;
+  gap: var(--space-1);
+}
+.tabs--mast .tab { color: var(--text-muted); font-size: 1rem; }
+.tabs--mast .tab:hover { color: var(--text); }
+.tabs--mast .tab:focus-visible { outline-color: var(--primary); }
+.tab__live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--live); margin-left: 6px; vertical-align: 0.15em; }
+
+.tab { isolation: isolate; }
+.tab[aria-current="page"], .tabs--mast .tab[aria-current="page"] { color: var(--accent-contrast); }
+.tab[aria-current="page"]::after,
+.tabs--mast .tab[aria-current="page"]::after {
+  inset: 7px 0;
+  height: auto;
+  z-index: -1;
+  border-radius: 3px;
+  background: var(--accent);
+  border: 1.5px solid var(--rule);
+}
+.tab--day[aria-current="page"]::after { inset: 4px 0; }
+@media (prefers-color-scheme: dark) {
+  .tab[aria-current="page"]::after,
+  .tabs--mast .tab[aria-current="page"]::after { border-color: var(--accent); }
+}
+.tabs { border-bottom-color: var(--rule); }
+
+/* Desktop top nav: the active page gets a printed underline. */
+@media (min-width: 1000px) {
+  .topbar__inner { padding: var(--space-3) var(--space-4); }
+  .brand__name { font-size: 2.25rem; }
+  .topnav a { opacity: 1; color: var(--text-muted); }
+  .topnav a:hover, .topnav a[aria-current="page"] { color: var(--text); }
+  .topnav a[aria-current="page"]::after { height: 4px; border-radius: 0; background: var(--primary); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Bottom navigation and footer                                        */
+/* ------------------------------------------------------------------ */
+
+.tabbar { background: var(--surface); border-top: 1px solid var(--rule); }
+.tabbar svg { border-radius: var(--radius); }
+.tabbar a[aria-current="page"] { color: var(--primary); }
+.tabbar a[aria-current="page"] svg { background: color-mix(in srgb, var(--primary) 14%, var(--surface)); }
+.badge { border-radius: 3px; background: var(--accent); color: var(--accent-contrast); box-shadow: 0 0 0 1.5px var(--surface); }
+
+.footer { border-top: 1px solid var(--rule); }
+.footer__dot { border-radius: 2px; }
+
+/* ------------------------------------------------------------------ */
+/* Buttons                                                             */
+/* ------------------------------------------------------------------ */
+
+.btn { border-radius: var(--radius); letter-spacing: 0.005em; }
+.btn--ghost { background: var(--surface); color: var(--text); border-color: var(--rule); }
+@media (prefers-color-scheme: dark) { .btn--ghost { border-color: var(--text-muted); } }
+.btn--ghost:hover { background: var(--surface-2); }
+.btn--glow { background: var(--accent); color: var(--accent-contrast); box-shadow: none; }
+.btn--glow:hover { background: color-mix(in srgb, var(--accent) 86%, #fff); box-shadow: none; }
+
+/* ------------------------------------------------------------------ */
+/* Chips, seal, live                                                   */
+/* ------------------------------------------------------------------ */
+
+.chip, .status, .idchip { border-radius: 3px; }
+.chip--first, .chip--tbc { background: var(--accent); color: var(--accent-contrast); }
+@media (prefers-color-scheme: dark) {
+  /* At night the official mark is a solid maroon block. */
+  .chip--iitd, .idchip--iitd { background: var(--maroon); color: var(--paper); }
+  .idchip--iitd .seal__fill { fill: var(--paper); }
+  .idchip--iitd .seal__mark { stroke: var(--maroon); }
+}
+
+/* LIVE is the only thing that glows. */
+.live {
+  min-height: 26px;
+  padding: 0 9px;
+  border-radius: 3px;
+  background: var(--live);
+  color: var(--accent-contrast);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: var(--glow-live);
+}
+
+/* ------------------------------------------------------------------ */
+/* Page heads, section heads: an ink rule over a condensed headline    */
+/* ------------------------------------------------------------------ */
+
+.page-head { padding-top: var(--space-2); }
+.page-head .lede { margin-top: var(--space-2); }
+.view > .section-title:not(._), .section-title {
+  margin-top: var(--space-6);
+  padding-top: var(--space-2);
+  border-top: 2px solid var(--rule);
+  font-size: 1.875rem;
+}
+.section-title--sm { font-size: 1.375rem; }
+.empty { border-radius: var(--radius-lg); border-color: var(--text-muted); }
+.empty__title, .empty h1 { font-weight: 900; text-transform: uppercase; font-size: 1.75rem; line-height: 0.95; }
+.note { border-radius: var(--radius); }
+
+/* Filter chips: printed tags with an ink edge. */
+.fchip::before { border-radius: var(--radius-sm); border: 1.5px solid var(--rule); box-shadow: none; background: var(--surface); }
+@media (prefers-color-scheme: dark) { .fchip::before { border-color: var(--text-muted); } }
+.fchip:hover::before { border-color: var(--text); background: var(--surface-2); }
+.fchip[aria-pressed="true"]::before, .fchip.is-on::before { background: var(--primary); border-color: var(--primary); }
+
+/* ------------------------------------------------------------------ */
+/* Ticket card                                                         */
+/* ------------------------------------------------------------------ */
+
+.card {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+.card::before, .card::after { background: var(--bg); box-shadow: inset 0 0 0 1px var(--rule); }
+@media (hover: hover) {
+  .card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+}
+.card:focus-within { box-shadow: var(--shadow); }
+.card__art::after { background: linear-gradient(180deg, transparent 60%, rgb(20 18 15 / 0.3)); }
+.card.is-live { box-shadow: var(--glow-live); border-color: var(--live); }
+
+.stub { background: var(--maroon); color: var(--paper); }
+.stub::after { border-right-color: color-mix(in srgb, var(--paper) 55%, var(--maroon)); }
+.stub__day, .stub__month { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.stub__date { font-family: var(--font-display); font-size: 2.5rem; font-weight: 900; line-height: 0.9; }
+.stub__time { font-weight: 700; }
+.stub--live { background: var(--live); color: var(--accent-contrast); }
+.stub--live::after { border-right-color: color-mix(in srgb, var(--accent-contrast) 45%, var(--live)); }
+.stub__live { font-weight: 800; letter-spacing: 0.08em; }
+.stub--past { background: var(--surface-2); color: var(--text-muted); }
+
+.card__body { gap: 6px; }
+.card__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.625rem;
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+.card__notetag { border-radius: 3px; }
+
+/* ------------------------------------------------------------------ */
+/* Event page                                                          */
+/* ------------------------------------------------------------------ */
+
+.hero { border-radius: var(--radius-lg); }
+.hero__glow, .slide__glow { display: none; }
+.hero__media { box-shadow: none; }
+/* One glow per screen: the live banner and tag carry it, not the photo. */
+.hero.is-live .hero__media { box-shadow: none; }
+
+.event__head > * + * { margin-top: var(--space-3); }
+.event__head h1 { margin-top: var(--space-2) !important; }
+.event__when {
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.event__when .live { font-family: var(--font-body); }
+.event__by { font-size: 1.0625rem; }
+
+.facts { border: 1px solid var(--rule); border-radius: var(--radius); }
+.event__main > .prose:not(._), .event__main > .know:not(._), .event__main > .going:not(._) { margin-top: var(--space-6); }
+.prose h2 { margin-bottom: var(--space-3); }
+.prose h2, .know h2, .going h2 { font-size: 1.875rem; }
+.going h2 .muted { font-family: var(--font-body); font-weight: 400; font-size: 1rem; text-transform: none; letter-spacing: 0; }
+.bars__track, .bars__fill { border-radius: 2px; }
+
+.banner { border-radius: var(--radius); }
+.banner--live { box-shadow: var(--glow-live); }
+.banner__label { font-weight: 800; letter-spacing: 0.08em; }
+
+.cta {
+  border: 1.5px solid var(--rule);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.cta__price b { font-size: 2.25rem; font-weight: 900; line-height: 0.95; text-transform: uppercase; }
+.team, .panel, .strip, .linklist, .clubs li, .orow, .demo__btn, .form--event fieldset { border-color: var(--border); }
+
+/* ------------------------------------------------------------------ */
+/* Stamped sheet and the wallet pass                                   */
+/* ------------------------------------------------------------------ */
+
+.sheet { border-top: 2px solid var(--rule); }
+.sheet__head h2 { font-size: 2rem; }
+.mini-pass { border-color: var(--rule); }
+.mini-pass__text b { font-weight: 900; font-size: 1.5rem; line-height: 0.95; text-transform: uppercase; letter-spacing: 0.01em; }
+
+.pass { border: 1px solid var(--rule); box-shadow: var(--shadow); }
+.pass__stub { grid-template-columns: 56px minmax(0, 1fr) 24px; }
+.pass__when { font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8125rem; }
+.pass__title { font-weight: 900; font-size: 2rem; line-height: 0.92; letter-spacing: 0.01em; text-transform: uppercase; }
+.pass__perf::before { border-top-color: color-mix(in srgb, var(--text) 30%, transparent); }
+.pass__name { font-family: var(--font-body); font-weight: 700; }
+.qr { box-shadow: 0 0 0 1px var(--rule); }
+.pass.is-past .pass__stub { background: var(--surface-2); }
+
+/* ------------------------------------------------------------------ */
+/* Fest hub                                                            */
+/* ------------------------------------------------------------------ */
+
+.fest-head { border-color: var(--rule); border-radius: var(--radius-lg); }
+.fest-head--photo { border-radius: var(--radius-lg); background: var(--stage); }
+.fest-head--photo .fest-head__media { overflow: hidden; }
+.fest-head--photo h1 { font-size: clamp(3rem, 12vw, 5.5rem); line-height: 0.86; letter-spacing: 0.005em; }
+.fest-head__dates { font-weight: 800; }
+.fest-head--photo .fest-head__dates > span { color: var(--on-stage); }
+.fest-head--photo .fest-head__dates > .i { color: var(--accent); }
+
+.sched-wrap { border-color: var(--rule); }
+.slot, .tl-item { border-radius: var(--radius-sm); }
+
+.fest-card { border-color: var(--rule); border-radius: var(--radius); }
+.fest-card__name { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: 2rem; line-height: 0.92; }
+
+.club-head__mark { background: var(--maroon); color: var(--paper); border-radius: var(--radius); font-weight: 900; font-size: 2rem; }
+
+/* ------------------------------------------------------------------ */
+/* Discovery: rails, poster cards, vibe tiles, fest tiles              */
+/* ------------------------------------------------------------------ */
+
+/* Section heads print an ink rule above a condensed headline. */
+.rail { margin-top: var(--space-5) !important; }
+.rail__head {
+  align-items: baseline;
+  padding-top: var(--space-2);
+  border-top: 2px solid var(--rule);
+  margin-bottom: var(--space-2);
+}
+.rail__title { font-size: clamp(1.875rem, 8vw, 2.5rem); line-height: 0.92; letter-spacing: 0.005em; }
+.rail__more { font-weight: 800; }
+/* Room above and below for focus rings and lifts inside the scroller. */
+.rail__track { padding: var(--space-2) var(--space-4) var(--space-3); }
+
+.pcard__art {
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 12%, transparent);
+}
+.pcard__art::after {
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgb(20 18 15 / 0.5) 0%, transparent 26%, transparent 66%, rgb(20 18 15 / 0.45));
+}
+.pcard { transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1); }
+@media (hover: hover) {
+  .pcard:hover { transform: translateY(-3px); }
+  .pcard:hover .pcard__art { box-shadow: var(--lift); }
+}
+/* Live is carried by the glowing tag inside the poster, so the scroller never clips it. */
+.pcard.is-live .pcard__art { box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 12%, transparent); }
+
+.pcard__when {
+  top: 10px;
+  left: 10px;
+  max-width: calc(100% - 20px);
+  min-height: 26px;
+  padding: 3px 8px 2px;
+  border-radius: 3px;
+  background: rgb(20 18 15 / 0.84);
+  color: var(--on-stage);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.pcard__when--live { background: var(--live); color: var(--accent-contrast); box-shadow: var(--glow-live); }
+/* Marigold tape: the star and the price are stickers slapped on the poster. */
+.pcard__feat {
+  width: 28px;
+  min-height: 28px;
+  border-radius: 3px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  box-shadow: 0 3px 8px -3px rgb(0 0 0 / 0.5);
+  top: auto;
+  right: 10px;
+  bottom: 12px;
+  transform: rotate(6deg);
+}
+.pcard__price {
+  left: 10px;
+  bottom: 10px;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 2px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  box-shadow: 0 3px 8px -3px rgb(0 0 0 / 0.55);
+  transform: rotate(-3deg);
+}
+.pcard__body { padding-top: 10px; }
+.pcard__title { font-size: 1.0625rem; line-height: 1.2; }
+.pcard__title a:focus-visible::after { outline-color: var(--primary); }
+
+/* Pick your vibe: photo tiles with a poster headline. */
+.cat { border-radius: var(--radius); box-shadow: none; transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1); }
+.cat::after { background: linear-gradient(180deg, transparent 30%, rgb(20 18 15 / 0.9)); }
+.cat__name {
+  left: 10px;
+  bottom: 8px;
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+@media (hover: hover) { .cat:hover { box-shadow: var(--lift); transform: translateY(-3px); } }
+
+/* Fest tiles: the date is a strip of tape over the photo. */
+.ftile { border-radius: var(--radius-lg); box-shadow: var(--lift); }
+.ftile::after { display: none; }
+.ftile__body { padding: var(--space-4) var(--space-4) var(--space-4); }
+.ftile__dates {
+  display: inline-block;
+  padding: 3px 9px 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+  transform-origin: left center;
+}
+.ftile__name {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 2.5rem;
+  line-height: 0.88;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+}
+.ftile__count { color: var(--on-stage); }
+@media (hover: hover) { .ftile:hover { box-shadow: var(--shadow); } }
+
+/* ------------------------------------------------------------------ */
+/* Spotlight: one poster at a time                                     */
+/* ------------------------------------------------------------------ */
+
+.spot { margin-top: var(--space-2) !important; }
+/* No spilled photo glow: it was clipped by the scroller into a slab. */
+/* Top padding keeps the whole-poster focus ring inside the scroller. */
+.slide { padding: var(--space-2) var(--space-4) var(--space-4); }
+.slide__card { border-radius: var(--radius-lg); }
+.slide__media { box-shadow: var(--lift); }
+.slide__media::after { border-radius: inherit; }
+.slide.is-live .slide__media { box-shadow: var(--lift); }
+
+/* The body sits in flow at the foot of the card, so the title link's overlay
+   (and its focus ring) covers the whole poster, not just the text block. */
+.slide__card { display: grid; align-items: end; }
+.slide__media { z-index: -1; }
+.slide__body { position: static; padding: var(--space-5) var(--space-4) var(--space-4); }
+.slide__title a:focus-visible::after {
+  outline: 3px solid var(--text);
+  outline-offset: 3px;
+  box-shadow: inset 0 0 0 3px var(--accent);
+}
+.slide__when { color: var(--on-stage); font-size: 0.875rem; font-weight: 700; letter-spacing: 0.02em; }
+.slide__title {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 15vw, 4.75rem);
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+}
+.slide__sub { color: var(--on-stage-muted); }
+.slide__cta { align-items: center; margin-top: var(--space-4); }
+.slide__price {
+  align-self: flex-end;
+  padding: 6px 12px 7px;
+  border-radius: 2px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.6);
+  transform: rotate(-3deg);
+  transform-origin: left bottom;
+}
+.slide__price small {
+  margin-top: 3px;
+  color: var(--accent-contrast);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+/* With the price on tape, the CTA is a clean paper button. */
+.slide .btn--glow { background: var(--on-stage); color: var(--stage); border-color: var(--on-stage); min-width: 8.5rem; }
+.slide .btn--glow:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+
+.spot__dots { margin-top: calc(var(--space-2) * -1) !important; }
+.spot__dot::before { background: color-mix(in srgb, var(--text-muted) 70%, var(--bg)); border-radius: 2px; }
+.spot__dot[aria-current="true"]::before { background: var(--primary); box-shadow: none; }
+
+@media (min-width: 720px) {
+  .slide { padding-inline: 0; }
+  .slide__body { padding: var(--space-6) var(--space-6) var(--space-5); max-width: 74%; }
+}
+@media (min-width: 1000px) {
+  .slide__title { font-size: 5.25rem; }
+  .cat { width: 140px; }
+  .rail__title { font-size: 2.5rem; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Happening now: tag on its own line, chips scroll edge to edge       */
+/* ------------------------------------------------------------------ */
+
+.livestrip { display: block; margin-top: var(--space-5) !important; }
+.livestrip__track {
+  gap: var(--space-2);
+  margin: var(--space-1) calc(var(--space-4) * -1) 0;
+  padding: var(--space-2) var(--space-4);
+  scroll-padding-inline: var(--space-4);
+}
+.livechip {
+  min-height: 56px;
+  padding: 6px 14px 6px 8px;
+  gap: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  box-shadow: none;
+}
+@media (prefers-color-scheme: dark) { .livechip { border-color: var(--border); } }
+.livechip:hover { background: var(--surface-2); }
+.livechip__media { width: 40px; height: 40px; border-radius: var(--radius-sm); }
+.livechip b { font-size: 0.9375rem; }
+.livechip small { font-size: 0.8125rem; }
+
+/* ------------------------------------------------------------------ */
+/* Motion preferences                                                  */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .pcard, .cat, .card { transition: none; }
+  .pcard:hover, .cat:hover, .card:hover { transform: none; }
+}

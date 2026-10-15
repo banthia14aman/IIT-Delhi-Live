@@ -1,0 +1,473 @@
+/* IITD Live theme: "Neon Fest Night".
+   The pronite at the OAT: a blue-violet night sky, and two stage lights.
+   - Magenta is the wash: brand, action, selection, focus, trust (verified seal).
+   - Saffron is the follow-spot: featured, IITD-first, the pass in your wallet.
+   - Where the two lights cross it is LIVE: the magenta-to-saffron sweep is used
+     only on live things (live tags, live stubs, live banners, live rings) and the logo.
+   Everything else stays night (dark) or lavender-white (light). Photos bring the colour.
+   The masthead and every photo sit on the same night "stage" in both modes.
+   Glows are crisp offset halos sized to fit inside their scroll containers, so they
+   never clip into slabs. Loaded after app.css; only tokens + component overrides. */
+
+/* ------------------------------------------------------------------ */
+/* Fonts: self-hosted, OFL (see assets/fonts/neon/OFL-LICENSES.txt).   */
+/* Unbounded (display) + Atkinson Hyperlegible Next (body) + Mono.     */
+/* The ₹ sign comes from 1 KB subsets that load only when ₹ is shown. */
+/* ------------------------------------------------------------------ */
+
+@font-face {
+  font-family: "Unbounded Neon";
+  src: url("../../assets/fonts/neon/unbounded-latin-wght-normal.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Unbounded Neon";
+  src: url("../../assets/fonts/neon/unbounded-rupee-wght.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20B9;
+}
+@font-face {
+  font-family: "Atkinson Next Neon";
+  src: url("../../assets/fonts/neon/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Atkinson Next Neon";
+  src: url("../../assets/fonts/neon/atkinson-hyperlegible-next-rupee-wght.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20B9;
+}
+@font-face {
+  font-family: "Atkinson Mono Neon";
+  src: url("../../assets/fonts/neon/atkinson-hyperlegible-mono-latin-wght-normal.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ------------------------------------------------------------------ */
+/* Tokens                                                              */
+/* ------------------------------------------------------------------ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Fixed stage lights (same in both modes; used on the night stage and as fills). */
+  --n-magenta: #FF4FA3;
+  --n-saffron: #FFA62B;
+  --n-live: #FF4458;
+  --n-ink: #14091F;
+  --n-sweep: linear-gradient(100deg, var(--n-magenta) 0%, var(--n-saffron) 100%);
+  --n-stage-lift: #1D1838;      /* search field, stubs on the stage */
+  --n-stage-line: #3A3263;      /* hairlines on the stage */
+  --n-stage-edge: #6E66A0;      /* 3:1 control borders on the stage */
+
+  /* Day: lavender-white ground, white cards, deep indigo ink. */
+  --bg: #F5F3FC;
+  --surface: #FFFFFF;
+  --surface-2: #ECE8F8;
+  --text: #16112E;
+  --text-muted: #575075;
+  --border: #DCD6EE;
+
+  --primary: #B8106A;          /* magenta, darkened for AA on white */
+  --primary-contrast: #FFFFFF;
+  --accent: #FFA62B;           /* saffron: fill only */
+  --accent-contrast: #14091F;  /* ink on saffron, on live and on the sweep */
+
+  --success: #08703F;
+  --warning: #9A4A00;
+  --danger: #C21F3A;
+  --live: #FF4458;
+
+  --font-display: "Unbounded Neon", "Atkinson Next Neon", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Atkinson Next Neon", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-mono: "Atkinson Mono Neon", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+
+  --shadow-sm: 0 1px 2px rgb(22 17 46 / 0.07), 0 1px 3px rgb(22 17 46 / 0.05);
+  --shadow: 0 12px 28px -12px rgb(22 17 46 / 0.30), 0 2px 6px rgb(22 17 46 / 0.06);
+
+  /* The stage: the masthead and every photo sit on night, in both modes. */
+  --stage: #0E0B1E;
+  --on-stage: #F7F4FF;
+  --on-stage-muted: #C9C2E8;
+  --scrim: linear-gradient(180deg, rgb(14 11 30 / 0) 0%, rgb(14 11 30 / 0.12) 32%, rgb(14 11 30 / 0.74) 62%, rgb(14 11 30 / 0.95) 100%);
+
+  /* Crisp halos: offset + blur with a negative spread, so they reach at most
+     ~2px up, ~12px sideways and ~22px down. That fits inside every rail's padding. */
+  --glow-live: 0 10px 22px -10px rgb(255 68 88 / 0.85), 0 0 0 1px rgb(255 68 88 / 0.55);
+  --glow-accent: 0 10px 22px -10px rgb(255 166 43 / 0.8);
+  --glow-primary: 0 8px 18px -8px rgb(255 79 163 / 0.8);
+
+  --n-stub: #1D1838;           /* ticket stubs: a strip of night on every card */
+  --n-toast: #16112E;
+  --n-toast-ink: #F3F0FF;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* Night: blue-violet sky, indigo surfaces, cool white ink. */
+    --bg: #0E0B1E;
+    --surface: #17132D;
+    --surface-2: #221C40;
+    --text: #F3F0FF;
+    --text-muted: #A8A1CB;
+    --border: #2F2852;
+
+    --primary: #FF4FA3;          /* full-strength magenta, ink on it */
+    --primary-contrast: #14091F;
+    --accent: #FFA62B;
+    --accent-contrast: #14091F;
+
+    --success: #3DDC97;
+    --warning: #FFC24D;
+    --danger: #FF6B7A;
+    --live: #FF4458;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.45);
+    --shadow: 0 14px 30px -14px rgb(0 0 0 / 0.8), 0 2px 6px rgb(0 0 0 / 0.35);
+
+    --glow-live: 0 10px 22px -10px rgb(255 68 88 / 0.9), 0 0 0 1px rgb(255 68 88 / 0.6);
+    --glow-accent: 0 10px 22px -10px rgb(255 166 43 / 0.75);
+    --glow-primary: 0 8px 18px -8px rgb(255 79 163 / 0.85);
+
+    --n-stub: #29224D;
+    --n-toast: #2A2350;
+    --n-toast-ink: #F3F0FF;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Type: Unbounded is wide, so display sizes step down from app.css.   */
+/* ------------------------------------------------------------------ */
+
+h1 { font-size: clamp(1.625rem, 6vw, 2.375rem); line-height: 1.08; letter-spacing: -0.025em; }
+.h-headline { font-size: 1.375rem; letter-spacing: -0.02em; }
+h2 { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.015em; }
+h3 { letter-spacing: -0.01em; }
+.view > .section-title:not(._), .section-title { font-size: 1.125rem; }
+.section-title--sm { font-size: 1rem; }
+.empty__title, .empty h1 { font-size: 1.125rem; font-weight: 700; }
+.empty--page h1 { font-size: 1.5rem; }
+legend { font-size: 1rem; font-weight: 700; }
+.mono { letter-spacing: 0.02em; }
+
+::selection { background: color-mix(in srgb, var(--primary) 22%, var(--surface)); color: var(--text); }
+
+/* ------------------------------------------------------------------ */
+/* Masthead: always the night stage (both modes)                       */
+/* ------------------------------------------------------------------ */
+
+.topbar { background: var(--stage); color: var(--on-stage); }
+.topbar :focus-visible { outline-color: var(--n-magenta); }
+
+.brand__mark {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23FF4FA3'/%3E%3Cstop offset='1' stop-color='%23FFA62B'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='112' fill='%23221C42'/%3E%3Cpath fill='url(%23g)' d='M124 150h264a28 28 0 0 1 28 28v48a30 30 0 0 0 0 60v48a28 28 0 0 1-28 28H124a28 28 0 0 1-28-28v-48a30 30 0 0 0 0-60v-48a28 28 0 0 1 28-28z'/%3E%3Cpath d='M322 178v156' stroke='%23221C42' stroke-width='12' stroke-linecap='round' stroke-dasharray='1 26'/%3E%3Ccircle cx='206' cy='256' r='36' fill='%23221C42'/%3E%3Ccircle cx='206' cy='256' r='70' fill='none' stroke='%23221C42' stroke-width='18'/%3E%3C/svg%3E") center / cover no-repeat;
+  box-shadow: 0 6px 14px -8px rgb(255 79 163 / 0.9);
+}
+.brand__name { font-size: 1.125rem; font-weight: 800; letter-spacing: -0.02em; }
+.brand__name b { color: inherit; font-weight: 800; }
+
+.search input {
+  background: var(--n-stage-lift);
+  border-color: var(--n-stage-edge); /* 3.75:1 against the stage */
+  color: var(--on-stage);
+}
+.search input::placeholder { color: var(--on-stage-muted); }
+.search input:hover { border-color: var(--on-stage-muted); }
+.search input:focus { background: var(--n-stage-lift); border-color: var(--n-magenta); color: var(--on-stage); }
+.search input:focus-visible { outline: 3px solid rgb(255 79 163 / 0.45); outline-offset: 1px; }
+.search__icon { color: var(--on-stage-muted); }
+.search:focus-within .search__icon { color: var(--on-stage); }
+
+.account { color: var(--on-stage); border-color: var(--n-stage-edge); }
+.account:hover { background: var(--n-stage-lift); border-color: var(--on-stage-muted); }
+.account--avatar { background: var(--n-saffron); color: var(--n-ink); border: 0; }
+.account--avatar:hover { background: var(--n-saffron); box-shadow: 0 6px 14px -6px rgb(255 166 43 / 0.9); }
+
+/* Feed tabs: the active tab gets a magenta footlight that throws its glow upward,
+   so nothing spills past the scroll container's bottom edge. */
+.tabs--mast {
+  background: var(--stage);
+  border-bottom: 1px solid var(--n-stage-line);
+  box-shadow: 0 8px 18px -12px rgb(14 11 30 / 0.55);
+}
+.tabs--mast .tab { color: var(--on-stage-muted); }
+.tabs--mast .tab:hover, .tabs--mast .tab[aria-current="page"] { color: var(--on-stage); }
+.tabs--mast .tab[aria-current="page"]::after {
+  height: 3px;
+  background: var(--n-magenta);
+  box-shadow: 0 -4px 14px -2px rgb(255 79 163 / 0.75);
+}
+.tabs--mast .tab:focus-visible { outline-color: var(--n-magenta); }
+.tab__live {
+  display: inline-block;
+  width: 7px; height: 7px;
+  margin-left: 6px;
+  vertical-align: 0.2em;
+  border-radius: 50%;
+  background: var(--n-live);
+  box-shadow: 0 0 0 2px rgb(255 68 88 / 0.25);
+}
+
+@media (min-width: 1000px) {
+  .topnav a { opacity: 1; color: var(--on-stage-muted); }
+  .topnav a:hover, .topnav a[aria-current="page"] { color: var(--on-stage); }
+  .topnav a[aria-current="page"]::after { background: var(--n-magenta); box-shadow: 0 -4px 14px -2px rgb(255 79 163 / 0.75); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Bottom navigation                                                   */
+/* ------------------------------------------------------------------ */
+
+.tabbar { background: var(--surface); border-top-color: var(--border); box-shadow: 0 -8px 20px -16px rgb(22 17 46 / 0.35); }
+.tabbar a[aria-current="page"] svg { background: color-mix(in srgb, var(--primary) 14%, var(--surface)); }
+
+/* ------------------------------------------------------------------ */
+/* Buttons                                                             */
+/* ------------------------------------------------------------------ */
+
+.btn:hover { box-shadow: var(--glow-primary); }
+.btn--ghost:hover, .btn--ok:hover, .btn--danger:hover, .btn--wa:hover { box-shadow: var(--shadow-sm); }
+.btn:disabled:hover, .btn[aria-disabled="true"]:hover { box-shadow: none; }
+.btn--ghost { border-color: color-mix(in srgb, var(--text-muted) 70%, var(--surface)); }
+.btn--ghost:hover { border-color: var(--primary); color: var(--text); }
+
+/* The booking button on the event page: lit, with a halo small enough
+   to stay inside the action panel's 12px padding (the panel scrolls). */
+.cta__btn .btn:not(.btn--ghost):not(.btn--ok):not(.btn--danger):not(:disabled):not([aria-disabled="true"]) {
+  box-shadow: 0 6px 12px -6px rgb(255 79 163 / 0.85);
+}
+.cta__price b { font-size: 1.25rem; letter-spacing: -0.02em; }
+
+/* Spotlight CTA: always on the night stage, so it uses full-strength magenta in both modes. */
+.btn--glow {
+  background: var(--n-magenta);
+  color: var(--n-ink);
+  border-color: transparent;
+  box-shadow: 0 10px 22px -10px rgb(255 79 163 / 0.95);
+}
+.btn--glow:hover {
+  background: color-mix(in srgb, var(--n-magenta) 86%, #fff);
+  box-shadow: 0 12px 26px -10px rgb(255 79 163 / 1);
+}
+
+/* ------------------------------------------------------------------ */
+/* LIVE: where the two lights cross. The sweep is used only here.      */
+/* ------------------------------------------------------------------ */
+
+.live,
+.slide__when .live,
+.livestrip__label .live {
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--n-sweep);
+  color: var(--n-ink);
+  font-weight: 700;
+  box-shadow: 0 6px 14px -6px rgb(255 68 88 / 0.9);
+}
+.banner--live { background: var(--n-sweep); color: var(--n-ink); box-shadow: 0 10px 22px -12px rgb(255 68 88 / 0.8); }
+.card__notetag.is-fresh { background: var(--n-sweep); color: var(--n-ink); }
+.card.is-live { border-color: color-mix(in srgb, var(--live) 70%, var(--border)); box-shadow: var(--glow-live); }
+
+/* ------------------------------------------------------------------ */
+/* Event card: the stub is a strip of night on every ticket            */
+/* ------------------------------------------------------------------ */
+
+.card { border-color: var(--border); }
+@media (hover: hover) {
+  .card:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); box-shadow: var(--glow-primary), var(--shadow-sm); }
+  .card.is-live:hover { box-shadow: var(--glow-live); }
+}
+.card__art::after { background: linear-gradient(180deg, transparent 55%, rgb(14 11 30 / 0.4)); }
+.card__title { font-size: 1.0625rem; font-weight: 700; line-height: 1.28; }
+.stub { background: var(--n-stub); color: var(--on-stage); }
+.stub::after { border-right-color: rgb(247 244 255 / 0.32); }
+.stub__day { color: var(--on-stage-muted); letter-spacing: 0.08em; }
+.stub__date { font-size: 1.5rem; letter-spacing: -0.03em; }
+.stub__month, .stub__time { color: var(--on-stage-muted); }
+.stub--past { background: var(--surface-2); color: var(--text-muted); }
+.stub--past .stub__day, .stub--past .stub__month, .stub--past .stub__time { color: var(--text-muted); }
+.stub.stub--live { background: linear-gradient(180deg, var(--n-magenta), var(--n-saffron)); color: var(--n-ink); }
+.stub.stub--live::after { border-right-color: rgb(20 9 31 / 0.35); }
+.stub--live .stub__day, .stub--live .stub__time { color: var(--n-ink); }
+
+/* ------------------------------------------------------------------ */
+/* Spotlight: crisp under-glow + edge light, no blurred-photo slab      */
+/* ------------------------------------------------------------------ */
+
+/* The old glow was a blurred photo that the scroll track clipped into a hard slab. */
+.slide__glow, .hero__glow { display: none; }
+
+/* Keep the 16px side gutter at every width so the halo always has room inside the track. */
+@media (min-width: 720px) {
+  .spot { margin-inline: calc(var(--space-4) * -1) !important; }
+  .slide { padding-inline: var(--space-4); }
+}
+.slide { padding-bottom: var(--space-6); }
+.slide__media {
+  /* Reaches 30px down and 14px sideways: inside the slide's 40px / 16px padding. */
+  box-shadow: 0 16px 30px -16px rgb(255 79 163 / 0.6), 0 2px 8px rgb(14 11 30 / 0.3);
+}
+.slide.is-live .slide__media { box-shadow: 0 16px 30px -16px rgb(255 68 88 / 0.8), 0 2px 8px rgb(14 11 30 / 0.3); }
+.slide__media::after { background: var(--scrim); }
+/* Edge light: a 1px rim, white where the house lights catch it, magenta at the bottom. */
+.slide__card::after, .hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(165deg, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0) 30%, rgb(255 255 255 / 0) 64%, rgb(255 79 163 / 0.95));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.slide.is-live .slide__card::after, .hero.is-live::after {
+  background: linear-gradient(165deg, var(--n-magenta), rgb(255 79 163 / 0) 34%, rgb(255 166 43 / 0) 62%, var(--n-saffron));
+}
+.slide__when { color: var(--on-stage-muted); }
+.slide__title { font-size: clamp(1.75rem, 7.4vw, 2.75rem); font-weight: 800; line-height: 1.04; letter-spacing: -0.035em; }
+.slide__title a:focus-visible::after { outline-color: var(--n-saffron); }
+.slide__sub { color: var(--on-stage-muted); }
+.slide__price { font-size: 1.5rem; letter-spacing: -0.02em; }
+.slide__price small { color: var(--on-stage-muted); }
+@media (min-width: 1000px) {
+  .slide__title { font-size: 3.125rem; }
+}
+
+.spot__dot::before { background: color-mix(in srgb, var(--text-muted) 45%, transparent); }
+.spot__dot[aria-current="true"]::before { background: var(--primary); box-shadow: none; }
+
+/* ------------------------------------------------------------------ */
+/* Happening now: no glow on clipped chips. Live = a lit ring round    */
+/* the photo, drawn inside the chip.                                   */
+/* ------------------------------------------------------------------ */
+
+.livestrip { gap: var(--space-2) var(--space-3); }
+.livestrip__track {
+  gap: var(--space-2);
+  padding: 6px 2px 8px;
+}
+.livechip {
+  position: relative;
+  min-height: 56px;
+  gap: var(--space-3);
+  padding: 6px var(--space-4) 6px 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  transition: border-color 200ms ease;
+}
+.livechip::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  width: 48px; height: 48px;
+  margin-top: -24px;
+  border-radius: 50%;
+  background: conic-gradient(from 210deg, var(--n-magenta), var(--n-saffron), var(--n-magenta));
+}
+.livechip__media { position: relative; z-index: 1; width: 40px; height: 40px; box-shadow: 0 0 0 2px var(--surface); }
+.livechip b { font-size: 0.9375rem; }
+.livechip small { font-size: 0.8125rem; }
+@media (hover: hover) { .livechip:hover { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); } }
+@media (max-width: 719px) {
+  /* Label on its own line, chips scroll full-bleed underneath. */
+  .livestrip { flex-direction: column; align-items: flex-start; }
+  .livestrip__track { align-self: stretch; margin-inline: calc(var(--space-4) * -1); padding: 6px var(--space-4) 8px; }
+}
+/* Fade the trailing edge so a cut-off chip reads as "scroll for more", not as a clipping bug. */
+.livestrip__track {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent);
+}
+
+/* ------------------------------------------------------------------ */
+/* Rails: poster cards, category tiles, fest tiles                     */
+/* ------------------------------------------------------------------ */
+
+/* Photo fallback: while a cover loads (or if it fails) show night, not a magenta slab. */
+.media:not(.cover-opt__none) {
+  background:
+    radial-gradient(120% 90% at 18% 12%, color-mix(in srgb, var(--poster, #3B3170) 72%, #fff 28%) 0%, transparent 55%),
+    linear-gradient(160deg, var(--poster, #3B3170), color-mix(in srgb, var(--poster, #3B3170) 50%, #000));
+}
+
+.rail__title { font-size: 1.1875rem; font-weight: 700; letter-spacing: -0.02em; }
+.pcard__art::after { background: linear-gradient(180deg, rgb(14 11 30 / 0.5) 0%, transparent 26%, transparent 60%, rgb(14 11 30 / 0.6)); }
+.pcard__when { background: rgb(14 11 30 / 0.82); color: var(--on-stage); border-radius: 10px; padding: 4px var(--space-2); line-height: 1.25; }
+.pcard__when--live { background: var(--n-sweep); color: var(--n-ink); box-shadow: 0 6px 12px -6px rgb(255 68 88 / 0.9); }
+.pcard__price { background: rgb(14 11 30 / 0.84); color: var(--on-stage); box-shadow: inset 0 0 0 1px rgb(247 244 255 / 0.18); }
+.pcard__feat { background: var(--n-saffron); color: var(--n-ink); box-shadow: 0 6px 12px -6px rgb(255 166 43 / 0.95); }
+.pcard__title { font-family: var(--font-body); font-size: 1rem; font-weight: 700; letter-spacing: 0; line-height: 1.3; }
+
+.cat::after { background: linear-gradient(180deg, transparent 35%, rgb(14 11 30 / 0.88)); }
+.cat__name { font-size: 0.875rem; font-weight: 700; letter-spacing: -0.01em; }
+@media (hover: hover) { .cat:hover { box-shadow: var(--glow-primary), 0 0 0 2px var(--primary); } }
+
+.ftile::after { inset: 0; height: auto; border-radius: inherit; background: none; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), inset 0 0 0 1px rgb(255 255 255 / 0.06); pointer-events: none; }
+.ftile__dates { color: var(--on-stage); letter-spacing: 0.01em; }
+.ftile__name { font-size: 1.375rem; letter-spacing: -0.03em; }
+.ftile__count { color: var(--on-stage); }
+
+/* ------------------------------------------------------------------ */
+/* Event page                                                          */
+/* ------------------------------------------------------------------ */
+
+.hero__media { box-shadow: 0 18px 34px -18px rgb(255 79 163 / 0.55), var(--shadow); }
+.hero.is-live .hero__media { box-shadow: 0 18px 34px -18px rgb(255 68 88 / 0.8), 0 0 0 1px rgb(255 68 88 / 0.6); }
+.event__when { color: var(--text); }
+.know li .i { color: var(--text-muted); } /* info icons are not actions: no magenta */
+.event__head h1 { margin-top: var(--space-1); }
+
+/* ------------------------------------------------------------------ */
+/* Wallet: the saffron pass                                            */
+/* ------------------------------------------------------------------ */
+
+.pass { box-shadow: var(--shadow), 0 22px 40px -26px rgb(255 166 43 / 0.6); }
+.pass__stub { grid-template-columns: 56px minmax(0, 1fr) 24px; }
+.pass__title { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.025em; }
+.pass__when { letter-spacing: 0.01em; }
+.mini-pass__text b { letter-spacing: -0.02em; }
+
+/* ------------------------------------------------------------------ */
+/* Fest hub, organiser, misc                                           */
+/* ------------------------------------------------------------------ */
+
+.fest-head--photo .fest-head__media { margin: 0; } /* app.css's sibling margin pushed the photo 8px down */
+.fest-head--photo h1 { font-size: clamp(1.875rem, 7vw, 2.875rem); letter-spacing: -0.035em; }
+.fest-card__name { font-size: 1.25rem; }
+.strip__nums b { font-size: 1.375rem; }
+.verdict__name { font-size: clamp(1.5rem, 5.5vw, 2.25rem); letter-spacing: -0.03em; }
+.club-head__mark { font-size: 1.375rem; }
+
+.toast { background: var(--n-toast); color: var(--n-toast-ink); box-shadow: var(--shadow), 0 0 0 1px var(--n-stage-edge); } /* the ring keeps it distinct over the night masthead */
+.toast--error { background: var(--danger); color: var(--surface); }
+
+.footer__dot { background: var(--primary); }
+
+@media (prefers-reduced-motion: reduce) {
+  .livechip { transition: none; }
+}

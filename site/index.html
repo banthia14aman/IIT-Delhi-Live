@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>IITD Live</title>
   <meta name="description" content="Every IIT Delhi event in one feed. See what's on tonight, register in one tap, keep your QR pass in a wallet, and get live venue updates.">
-  <meta name="theme-color" content="#8A1538" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#140A0D" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#0B0B0D" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B0B0D" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
 
   <meta property="og:type" content="website">
@@ -27,6 +27,18 @@
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/app.css">
+  <link id="theme-css" rel="stylesheet" href="css/themes/stage.css">
+  <script>
+    /* Theme preview for comparing the bake-off: ?theme=daylight (or neon, heritage, stage) swaps the theme file. */
+    (function () {
+      try {
+        var key = new URLSearchParams(location.search).get('theme');
+        if (key && /^[a-z]+$/.test(key) && ['stage', 'daylight', 'neon', 'heritage'].indexOf(key) !== -1) {
+          document.getElementById('theme-css').href = 'css/themes/' + key + '.css';
+        }
+      } catch (e) { /* keep the shipped theme */ }
+    })();
+  </script>
 
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
