@@ -23,7 +23,7 @@ So: **relative paths only**, no build step, no bundler, plain ES modules, CDN li
 --radius-sm --radius --radius-lg --shadow-sm --shadow
 --space-1 --space-2 --space-3 --space-4 --space-5 --space-6
 ```
-Light + dark: define on `:root`, redefine under `@media (prefers-color-scheme: dark)`. Google Fonts `@import` at the top of `tokens.css`.
+Light + dark: define on `:root`, redefine under `@media (prefers-color-scheme: dark)`. Fonts are self-hosted by the theme file (`@font-face` in `css/themes/<theme>.css`, files in `assets/fonts/<theme>/`); no third-party font `@import`.
 
 ## Store API (`js/store.js`, ES module, `export const store = {...}`; all sync, all return plain objects)
 

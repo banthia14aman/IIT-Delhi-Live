@@ -1,9 +1,8 @@
 /* IITD Live design tokens. Owner: design agent. See /DESIGN.md for usage rules.
-   Fonts: Bricolage Grotesque (display), Atkinson Hyperlegible Next (body),
-   Atkinson Hyperlegible Mono (pass codes). Google serves unicode-range subsets,
-   so only the latin file loads, plus latin-ext when a page shows ₹.
-   About 85 KB in total, with display=swap so text never waits for fonts. */
-@import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@500&family=Atkinson+Hyperlegible+Next:wght@400;700&family=Bricolage+Grotesque:wght@700..800&display=swap");
+   Fonts: the v1 stacks below name Bricolage Grotesque (display), Atkinson Hyperlegible Next
+   (body) and Atkinson Hyperlegible Mono (pass codes), but nothing loads them from here any more:
+   every theme file self-hosts its own faces under assets/fonts/<theme>/ and redefines the
+   stacks (Stage: Archivo + Atkinson Hyperlegible Mono). No third-party font requests. */
 
 :root {
   color-scheme: light dark;

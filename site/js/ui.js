@@ -422,7 +422,7 @@ function priceChip(e) {
 }
 function eligChip(e) {
   if (e.eligibility === 'iitd_only') return `<span class="chip chip--iitd">${I.shield}IITD only</span>`;
-  if (iitdFirstActive(e)) return `<span class="chip chip--first chip--early">${I.star}${esc(eligShort(e))}</span>`;
+  if (iitdFirstActive(e)) return `<span class="chip chip--first chip--early">${I.clock}${esc(eligShort(e))}</span>`;
   return `<span class="chip chip--open">${I.door}Open to all</span>`;
 }
 function chips(e, { featured = true, category = false } = {}) {
@@ -606,9 +606,10 @@ function viewDiscover() {
   const liveNow = all.filter(isLive);
   const byGoing = (a, b) => (b.going || 0) - (a.going || 0);
 
-  // Spotlight: what's live, then featured, then the biggest crowds. Max 6, no repeats.
+  // Spotlight: featured-and-live, then featured (curated, strong photos), then other live, then the biggest crowds. Max 6.
   const picked = new Map();
-  [...liveNow, ...all.filter((e) => e.featured), ...[...week].sort(byGoing)]
+  const featured = all.filter((e) => e.featured);
+  [...featured.filter(isLive), ...featured, ...liveNow, ...[...week].sort(byGoing)]
     .forEach((e) => { if (picked.size < 6 && coverKey(e) && !picked.has(e.id)) picked.set(e.id, e); });
   const spot = [...picked.values()];
 

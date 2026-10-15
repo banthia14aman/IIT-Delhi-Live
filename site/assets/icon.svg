@@ -6,7 +6,6 @@
   <path fill="#FFFFFF" d="M124 150h264a28 28 0 0 1 28 28v48a30 30 0 0 0 0 60v48a28 28 0 0 1-28 28H124a28 28 0 0 1-28-28v-48a30 30 0 0 0 0-60v-48a28 28 0 0 1 28-28z"/>
   <!-- Perforation between pass and stub -->
   <path d="M322 178v156" stroke="#0B0B0D" stroke-width="12" stroke-linecap="round" stroke-dasharray="1 26"/>
-  <!-- Live dot and ring in stage crimson (IIT maroon under stage light) -->
-  <circle cx="206" cy="256" r="34" fill="#D81B4A"/>
-  <circle cx="206" cy="256" r="68" fill="none" stroke="#D81B4A" stroke-width="18"/>
+  <!-- One crimson on-air dot (IIT maroon under stage light), centred between the notch and the perforation. No ring. -->
+  <circle cx="224" cy="256" r="60" fill="#D81B4A"/>
 </svg>

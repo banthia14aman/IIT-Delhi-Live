@@ -1,19 +1,22 @@
 /* IITD Live theme v3: "Stage Black". The shipped theme (index.html loads it after app.css).
    The masthead is a black stage in both modes and the event photos supply the colour.
-   One owned accent, IIT maroon, lit two ways:
-     - by day on the page: maroon #A8123E (CTAs, active states, links, urgency, the seal);
-     - under stage light, on anything black: crimson #D81B4A (the LIVE stamp in the wordmark,
-       tab bars, the spotlight Register button, and the dark-mode primary).
-   The wallet pass runs from heritage maroon #8A1538 into that crimson.
-   Marigold is only the "Featured" mark. Saffron-orange is only LIVE.
+   ONE accent, IIT maroon under stage light:
+     - crimson #D81B4A is the single action colour in both modes: every filled button, the
+       event CTA, the spotlight Register, the active tab pill, filter-chip on, the LIVE stamp;
+     - maroon #A8123E (day) / lit crimson #FF3B5C (night) is --primary-ink, for small text only:
+       links, urgency, the event date line, IITD icons.
+   The wallet pass runs from heritage maroon #8A1538 into crimson.
+   Marigold is only the small Featured mark (a star). Saffron-orange is only LIVE.
 
    Glow rules: nothing glows inside a scroll container unless its light is drawn inside the item
-   or the scroller fades it out (the spotlight track has a bottom mask). Glow is allowed on the
-   spotlight photo spill, the primary CTA, the LIVE stamp and the LIVE badges.
+   or the scroller fades it out (the spotlight track has a bottom mask). By day the spotlight card
+   casts a crimson-tinted shadow; by night a fixed crimson pool sits behind it. Glow is also allowed
+   on the primary CTA, the LIVE stamp and the LIVE badges.
 
    Type: Archivo (OFL, Omnibus-Type), one variable file trimmed to wght 400–850 / wdth 100–115,
    57.5 KB latin + a 1.4 KB ₹-only subset. Display runs semi-expanded (wdth 112) for title-card
-   presence; body runs at normal width. Pass codes keep --font-mono from tokens.css. */
+   presence; body runs at normal width. Pass codes: Atkinson Hyperlegible Mono 500 (OFL), self-hosted,
+   10 KB latin only; ₹ is outside its unicode-range and falls through to Archivo, so it is never mono. */
 
 @font-face {
   font-family: "IITD Archivo";
@@ -33,6 +36,14 @@
   font-display: swap;
   unicode-range: U+20B9;
 }
+@font-face {
+  font-family: "IITD Mono";
+  src: url("../../assets/fonts/stage/atkinson-hyperlegible-mono-latin-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 /* ------------------------------------------------------------------ */
 /* Tokens: day (house lights up)                                       */
@@ -46,7 +57,7 @@
   --text-muted: #55555F;
   --border: #DEDEE3;
 
-  --primary: #A8123E;          /* IIT maroon, lifted: CTA, active state, links, seal */
+  --primary: #D81B4A;          /* crimson: the one action colour (white text 5.03:1) */
   --primary-contrast: #FFFFFF;
   --accent: #FFB21E;           /* marigold: the Featured mark only */
   --accent-contrast: #111113;  /* ink on marigold and on live */
@@ -58,6 +69,7 @@
 
   --font-display: "IITD Archivo", "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-body: "IITD Archivo", "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-mono: "IITD Mono", "IITD Archivo", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   --radius-sm: 6px;
   --radius: 12px;
@@ -74,19 +86,20 @@
 
   --glow-live: 0 4px 14px -4px rgb(242 87 10 / 0.6);
   --glow-accent: 0 3px 10px -3px rgb(255 178 30 / 0.45);
-  --glow-primary: 0 10px 24px -10px rgb(168 18 62 / 0.6);
+  --glow-primary: 0 6px 14px -8px rgb(216 27 74 / 0.5);   /* tight: the CTA light stays inside its card */
 
   /* Theme-local roles (not in the contract; used only by this file). */
-  --primary-ink: #A8123E;      /* maroon as text on page surfaces */
+  --primary-ink: #A8123E;      /* maroon, small text only: links, urgency, date line */
   --maroon: #8A1538;           /* IIT Delhi heritage maroon: the start of the pass */
-  --crimson: #D81B4A;          /* maroon under stage light: anything on black (white text 5.03:1) */
+  --crimson: #D81B4A;          /* the one action colour; also anything on black (white text 5.03:1) */
   --glow-crimson: 0 10px 30px -8px rgb(216 27 74 / 0.75);
   --pass-end: #C0103F;
-  --tint: 10%;                 /* status-chip tint strength */
+  --tint: 10%;                 /* status-chip tint strength (day only; night uses --plate) */
+  --plate: color-mix(in srgb, var(--primary) var(--tint), var(--surface));
+  --star: #B87700;             /* the Featured star on a calm chip (3.17:1 on surface-2) */
   --stage-line: rgb(255 255 255 / 0.1);
   --stage-field: #1C1C21;
   --stub: #0B0B0D;
-  --spot-glow: 0.5;            /* the spotlight photo spill: soft coloured shadow by day */
   --ticket-mask:
     radial-gradient(circle at 0 50%, #0000 4.5px, #000 5px) left / 51% 100% no-repeat,
     radial-gradient(circle at 100% 50%, #0000 4.5px, #000 5px) right / 51% 100% no-repeat;
@@ -120,15 +133,16 @@
 
     --on-stage: #F5F5F7;
 
-    --glow-live: 0 4px 16px -3px rgb(255 122 31 / 0.7);
+    --glow-live: 0 2px 10px -3px rgb(255 140 50 / 0.9);
     --glow-accent: 0 3px 10px -3px rgb(255 194 61 / 0.4);
-    --glow-primary: 0 10px 30px -8px rgb(216 27 74 / 0.75);
+    /* Tight, so the CTA's light stays inside its card (no tint on the card's border, no smudge below). */
+    --glow-primary: 0 6px 16px -8px rgb(216 27 74 / 0.6);
 
-    --primary-ink: #FF5A73;
+    --primary-ink: #FF3B5C;    /* crimson, lit: same hue, 5.65:1 on bg, 5.23:1 on surface */
     --pass-end: #D81B4A;
-    --tint: 18%;
+    --plate: rgb(255 255 255 / 0.08);  /* neutral plate: no crimson-tinted chips at night */
+    --star: var(--accent);
     --stub: #26262C;
-    --spot-glow: 0.9;          /* at night the photo lights the stage */
   }
 }
 
@@ -157,14 +171,14 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
 .topbar { background: var(--stage); color: var(--on-stage); }
 .topbar :focus-visible { outline-color: var(--on-stage); }
 
-/* The mark: a white ticket with a crimson live dot, no box, so the LIVE stamp is the only red block. */
+/* The mark: a white ticket with one crimson on-air dot (no ring: a ring reads as a bullseye). */
 .brand { gap: 10px; }
 .brand__mark {
   width: 31px;
   height: 22px;
   border-radius: 0;
   box-shadow: none;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='96 150 320 212'%3E%3Cpath fill='%23fff' d='M124 150h264a28 28 0 0 1 28 28v48a30 30 0 0 0 0 60v48a28 28 0 0 1-28 28H124a28 28 0 0 1-28-28v-48a30 30 0 0 0 0-60v-48a28 28 0 0 1 28-28z'/%3E%3Cpath d='M322 178v156' stroke='%230B0B0D' stroke-width='12' stroke-linecap='round' stroke-dasharray='1 26'/%3E%3Ccircle cx='206' cy='256' r='34' fill='%23D81B4A'/%3E%3Ccircle cx='206' cy='256' r='68' fill='none' stroke='%23D81B4A' stroke-width='18'/%3E%3C/svg%3E") center / contain no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='96 150 320 212'%3E%3Cpath fill='%23fff' d='M124 150h264a28 28 0 0 1 28 28v48a30 30 0 0 0 0 60v48a28 28 0 0 1-28 28H124a28 28 0 0 1-28-28v-48a30 30 0 0 0 0-60v-48a28 28 0 0 1 28-28z'/%3E%3Cpath d='M322 178v156' stroke='%230B0B0D' stroke-width='12' stroke-linecap='round' stroke-dasharray='1 26'/%3E%3Ccircle cx='224' cy='256' r='60' fill='%23D81B4A'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 /* Wordmark: "IITD" in white, then LIVE as a tilted crimson stamp, lit like an on-air sign. */
 .brand__name {
@@ -192,11 +206,11 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
 
 .search input {
   background: var(--stage-field);
-  border: 1px solid rgb(255 255 255 / 0.14);
+  border: 1px solid rgb(255 255 255 / 0.4);   /* 3.80:1 on the stage */
   color: var(--on-stage);
 }
 .search input::placeholder { color: #A1A1AA; }
-.search input:hover { border-color: rgb(255 255 255 / 0.28); }
+.search input:hover { border-color: rgb(255 255 255 / 0.6); }
 .search input:focus { background: var(--stage-field); color: var(--on-stage); border-color: var(--crimson); }
 .search input:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
 .search__icon { color: #A1A1AA; }
@@ -216,6 +230,33 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
 .tabs--mast .tab:hover, .tabs--mast .tab[aria-current="page"] { color: var(--on-stage); }
 .tabs--mast .tab[aria-current="page"]::after { background: var(--crimson); height: 3px; }
 .tabs--mast .tab:focus-visible { outline-color: var(--on-stage); }
+/* One left edge: the first tab's label lines up with the brand and the search field. */
+.tabs--mast .tab:first-child { margin-left: calc(var(--space-3) * -1); }
+/* Narrow phones: tighter tab padding, so all four feed tabs fit (at 320px "Fests" was cut off at the
+   edge with no fade). The first-tab pull and the active underline follow the padding. */
+@media (max-width: 378.98px) {
+  .tabs--mast { gap: 0; padding-right: 8px; }
+  .tabs--mast .tab { padding-inline: 8px; }
+  .tabs--mast .tab:first-child { margin-left: -8px; }
+  .tabs--mast .tab[aria-current="page"]::after { left: 8px; right: 8px; }
+}
+@media (max-width: 349.98px) {
+  .tabs--mast .tab { padding-inline: 6px; }
+  .tabs--mast .tab:first-child { margin-left: -6px; }
+  .tabs--mast .tab[aria-current="page"]::after { left: 6px; right: 6px; }
+}
+/* In-page tabs (fest days, organiser sections): pull the row out by the tab padding, and draw the
+   hairline from the content edge, so the first label and the rule share the page's left edge. */
+.tabs:not(.tabs--mast) {
+  margin-left: calc(var(--space-3) * -1);
+  border-bottom: 0;
+  background: linear-gradient(var(--border), var(--border)) var(--space-3) 100% / calc(100% - var(--space-3)) 1px no-repeat;
+}
+@media (prefers-color-scheme: dark) {
+  /* The black masthead would merge with the black page: a hairline closes it. */
+  .tabs--mast { border-bottom-color: var(--border); }
+  body:not(:has(.tabs--mast)) .topbar { box-shadow: inset 0 -1px 0 var(--border); }
+}
 /* Saffron reads on black in both modes, so the live dot on Tonight shows in light mode too. */
 .tab__live { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--live); margin-left: 6px; vertical-align: 0.2em; }
 
@@ -232,28 +273,39 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
 /* ------------------------------------------------------------------ */
 
 .tabbar { background: var(--surface); border-top-color: var(--border); }
-.tabbar a[aria-current="page"] { color: var(--primary-ink); }
-.tabbar a[aria-current="page"] svg { background: color-mix(in srgb, var(--primary) var(--tint), var(--surface)); }
+.tabbar a { color: var(--text-muted); font-weight: 600; }
+/* Active: a filled crimson pill with a white icon (shape + fill, not colour alone) and a bold crimson
+   label, so the control has one red (crimson on white 5.03:1). Night keeps the lit ink, because
+   crimson on the dark surface would be 3.62:1. */
+.tabbar a[aria-current="page"] { color: var(--crimson); font-weight: 800; }
+@media (prefers-color-scheme: dark) { .tabbar a[aria-current="page"] { color: var(--primary-ink); } }
+.tabbar a[aria-current="page"] svg { background: var(--crimson); color: #FFFFFF; }
 .tabbar .badge { box-shadow: 0 0 0 2px var(--surface); }
+/* On the active crimson pill the count flips to white, so it never melts into the pill. */
+.tabbar a[aria-current="page"] .badge { background: #FFFFFF; color: var(--crimson); box-shadow: 0 0 0 2px var(--crimson); }
 
 .footer__dot { background: var(--text-muted); }
 
 /* ------------------------------------------------------------------ */
-/* Buttons: maroon is the one action colour; only the primary CTA glows */
+/* Buttons: crimson is the one action colour, both modes; only the primary CTA glows */
 /* ------------------------------------------------------------------ */
 
 .btn { font-weight: 700; letter-spacing: 0; }
+.btn:not(.btn--ghost, .btn--ok, .btn--danger, .btn--wa):not(:disabled, [aria-disabled="true"]) {
+  background: var(--crimson);
+  color: #FFFFFF;
+}
 /* Hover darkens in both modes, so white text only gains contrast. */
 .btn:not(.btn--ghost, .btn--ok, .btn--danger, .btn--wa):not(:disabled, [aria-disabled="true"]):hover {
-  background: color-mix(in srgb, var(--primary) 86%, #000);
+  background: color-mix(in srgb, var(--crimson) 86%, #000);   /* #BA1740, white 6.39:1 */
 }
 .btn--ghost { border-width: 1px; border-color: color-mix(in srgb, var(--text) 32%, var(--surface)); }
 .btn--ghost:hover { border-color: var(--text); background: var(--surface); }
 
 /* The event-page action: the CTA that sells. */
 .cta__btn .btn:not(.btn--ghost, .btn--ok, .btn--danger, .btn--wa):not(:disabled, [aria-disabled="true"]) {
-  background: var(--primary);
-  color: var(--primary-contrast);
+  background: var(--crimson);
+  color: #FFFFFF;
   box-shadow: var(--glow-primary);
 }
 /* The spotlight Register sits on a photo, so it takes the lit crimson in both modes. */
@@ -271,19 +323,24 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
 .chip, .status, .idchip { border-radius: var(--radius-sm); }
 .chip--free, .chip--paid, .chip--iitd, .chip--first, .chip--tbc { background: var(--surface-2); color: var(--text); }
 .chip--open, .chip--team { background: var(--surface-2); color: var(--text-muted); }
-/* IITD-only and IITD-first keep a maroon icon: belonging, said quietly. */
+/* IITD-only (shield) and IITD-first (clock: a timed head start) keep a maroon icon: belonging, said
+   quietly. The star belongs to Featured alone, so the two chips never read as one badge or a rating. */
 .chip--iitd .i, .chip--early .i { color: var(--primary-ink); }
 .chip--first .i { fill: none; stroke-width: 2; }
-/* Featured is the one marigold mark. */
-.chip--featured { background: var(--accent); color: var(--accent-contrast); }
-.chip--featured .i { color: currentColor; fill: currentColor; stroke-width: 1.5; }
+/* Featured: a calm chip with a small marigold star, so it never competes with the crimson CTA. */
+.chip--featured { background: var(--surface-2); color: var(--text); }
+.chip--featured .i { color: var(--star); fill: currentColor; stroke-width: 1.5; }
 
-.idchip--iitd {
-  background: color-mix(in srgb, var(--primary) var(--tint), var(--surface));
-  color: var(--primary-ink);
-}
+.idchip--iitd { background: var(--plate); color: var(--primary-ink); }
 .status--confirmed, .status--checked_in { background: color-mix(in srgb, var(--success) var(--tint), var(--surface)); }
-.avatar { background: color-mix(in srgb, var(--primary) var(--tint), var(--surface)); color: var(--primary-ink); }
+.avatar { background: var(--plate); color: var(--primary-ink); }
+@media (prefers-color-scheme: dark) {
+  /* Night: neutral plates, colour only in the glyph or the text. */
+  .idchip--iitd { color: var(--text); }
+  .idchip--iitd .seal__fill { fill: var(--primary-ink); }
+  .avatar { color: var(--text); box-shadow: inset 0 0 0 1.5px var(--primary-ink); }
+  .status--confirmed, .status--checked_in, .status--waitlisted { background: var(--plate); }
+}
 
 .seal__fill { fill: var(--primary); }
 .seal__mark { stroke: var(--primary-contrast); }
@@ -307,6 +364,8 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
 /* A 72px stub (app.css: 64px) so the live line breaks as "till / 11:00 PM", never "till 11:00 / PM". */
 .card { border-color: var(--border); grid-template-columns: 72px minmax(0, 1fr); }
 .card::before, .card::after { left: calc(72px - var(--notch)); }
+/* Only the half that bites into the ticket shows; no grey bead on the photo above. */
+.card::before { clip-path: inset(var(--notch) 0 0 0); }
 .stub { background: var(--stub); color: var(--on-stage); }
 .stub::after { border-right-color: rgb(255 255 255 / 0.32); }
 .stub__day, .stub__month, .stub__time { color: var(--on-stage-muted); }
@@ -333,18 +392,32 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
   margin-bottom: var(--space-3);
   padding-top: var(--space-2);
   border-top: 2px solid var(--text);
+  /* A short crimson lead-in, like the cue light on a running head. */
+  border-image: linear-gradient(90deg, var(--crimson) 0 56px, var(--text) 56px) 1;
 }
 .rail__title { font-size: 1.375rem; font-weight: 800; letter-spacing: -0.025em; }
 .rail__more { color: var(--primary-ink); }
 .rail__track { padding-bottom: var(--space-2); scrollbar-color: color-mix(in srgb, var(--text-muted) 40%, transparent) transparent; }
 .discover__all { margin-top: var(--space-5) !important; }
+/* Desktop: the right edge fades, so the cut-off tile reads as "scroll for more". The extra end
+   padding lets the last tile clear the fade once the rail is scrolled to its end. */
+@media (min-width: 1000px) {
+  .rail__track {
+    padding-inline-end: 72px;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 72px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 72px), transparent);
+  }
+}
 
-/* No-photo fallback: the organiser's colour, lit from one corner and falling into the stage black. */
+/* No photo, or still loading: the organiser's colour as a light from one corner, falling off into
+   the stage black. Mixed with transparent (not white), so it never washes out to a pastel. */
 .media {
   background:
-    radial-gradient(110% 80% at 20% 10%, color-mix(in srgb, var(--poster, var(--primary)) 82%, #fff) 0%, transparent 58%),
-    linear-gradient(165deg, var(--poster, var(--primary)) 0%, color-mix(in srgb, var(--poster, var(--primary)) 35%, var(--stage)) 100%);
+    radial-gradient(90% 70% at 18% 0%, color-mix(in srgb, var(--poster, #D81B4A) 65%, transparent), transparent 70%),
+    var(--stage);
 }
+/* The organiser's "No photo" option is a control, not a poster: calm, with readable text. */
+.cover-opt .cover-opt__none { background: var(--surface-2); color: var(--text-muted); }
 
 /* Poster card. Top: a ticket-shaped price tag and the Featured star. Foot of the photo: a black
    date band, one line, like the strip on a cinema poster. Live turns the band saffron. */
@@ -429,15 +502,23 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
   mask: var(--ticket-mask);
 }
 .ftile__name { margin-top: var(--space-2); font-weight: 800; letter-spacing: -0.03em; }
-/* Photo missing or still loading: a lit stage, not a flat gradient. */
-.ftile > .media:not(:has(.media__img)) {
-  background:
-    radial-gradient(70% 90% at 82% -10%, color-mix(in srgb, var(--poster, var(--crimson)) 70%, #fff) 0%, transparent 60%),
-    radial-gradient(60% 70% at 10% 0%, rgb(216 27 74 / 0.45) 0%, transparent 70%),
-    repeating-linear-gradient(115deg, rgb(255 255 255 / 0.035) 0 2px, transparent 2px 14px),
-    var(--stage);
-}
 @media (hover: hover) { .ftile:hover { box-shadow: var(--shadow); } }
+/* Night: a photo-less (or still loading) tile is stage black on the black ground, and its black
+   shadow is invisible, so its edges vanished. A 1px white-8% bezel, drawn above the photo and the
+   scrim, keeps the frame; over a photo it reads as the same hairline the spotlight card has. */
+@media (prefers-color-scheme: dark) {
+  .ftile::after {
+    display: block;
+    inset: 0;
+    height: auto;
+    border-radius: inherit;
+    background: none;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+    pointer-events: none;
+  }
+  .pcard__art::after, .cat::after, .hero::after { border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+  .hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+}
 
 /* ------------------------------------------------------------------ */
 /* Spotlight                                                           */
@@ -468,47 +549,83 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
   pointer-events: none;
 }
-/* The photo lights the floor in its own colours. */
-.slide__glow {
-  inset: 45% 10% 0;
-  border-radius: 50%;
-  transform: translateY(18px);
-  filter: blur(30px) saturate(1.5);
-  opacity: var(--spot-glow);
+/* Day: no photo spill (a blurred photo on a light ground reads as a dusty stain). The card casts a
+   short, clean shadow with a crimson cast that hugs its foot, so it reads as light, not a halo, and
+   the dots row below sits on clean grey (within 1 level of --bg; the old 30px/50px cast left a
+   dusty-rose band there). */
+.slide__glow { display: none; }
+.slide__media, .slide.is-live .slide__media {
+  box-shadow: 0 16px 24px -16px rgb(216 27 74 / 0.4), 0 12px 24px -14px rgb(11 11 13 / 0.28), 0 2px 6px rgb(11 11 13 / 0.06);
 }
 @media (prefers-color-scheme: dark) {
-  .slide__glow { inset: 32% 4% 0; transform: translateY(22px); filter: blur(34px) saturate(1.6); }
+  /* Night: a fixed crimson pool centred behind the lower card, so its peak is hidden and only a
+     rim spills out below (about 32px + blur, inside the track's 64px bottom pad and its fade).
+     Inset 10% at the sides, so no haze reaches the viewport edges on a phone. */
+  .slide__glow {
+    display: block;
+    inset: auto 10% -32px;
+    height: 46%;
+    border-radius: 0;
+    background: radial-gradient(closest-side, rgb(216 27 74 / 0.9), rgb(216 27 74 / 0.55) 50%, rgb(216 27 74 / 0) 100%);
+    filter: blur(12px);
+    opacity: 1;
+    transform: none;
+  }
+  /* A black drop shadow is invisible on the black ground and would only smother the pool. */
+  .slide__media, .slide.is-live .slide__media { box-shadow: none; }
 }
-.slide__media { box-shadow: var(--shadow); }
-.slide.is-live .slide__media { box-shadow: var(--shadow); }
 .slide__when { color: var(--on-stage-muted); }
 .slide__when > .live + span::before { content: none; }
 .slide__title { font-size: clamp(1.875rem, 8.2vw, 3.25rem); font-weight: 800; letter-spacing: -0.035em; line-height: 0.98; }
-.slide__title a:focus-visible::after { outline-color: var(--on-stage); }
+/* The ring sits just inside the text block, so it always lands on the dark scrim (never white on the day ground). */
+.slide__title a:focus-visible::after { outline-color: var(--on-stage); outline-offset: -4px; }
 .slide__sub { color: var(--on-stage-muted); }
 .slide .seal__fill { fill: var(--on-stage); }
 .slide .seal__mark { stroke: var(--stage); }
 .slide__price { font-weight: 800; letter-spacing: -0.02em; color: var(--on-stage); }
 .slide__price small { color: var(--on-stage-muted); }
 .slide__cta .btn { min-width: 132px; }
+/* On the scrim, focus is a white ring. */
+.slide :focus-visible, .slide__cta .btn:focus-visible { outline-color: var(--on-stage); }
 
 .spot__dots { position: relative; z-index: 1; margin-top: -56px !important; }
-.spot__dot::before { background: color-mix(in srgb, var(--text) 26%, transparent); }
+/* 44×44 hit areas (app.css: 32px wide). Six dots take 264px, inside the 288px column at 320px. */
+.spot__dot { width: 44px; }
+.spot__dot::before { background: var(--text-muted); }   /* 6.77:1 day, 7.67:1 night */
 .spot__dot[aria-current="true"]::before { background: var(--text); box-shadow: none; }
 .spot__dot:focus-visible { outline-color: var(--primary); }
 
 @media (max-width: 719.98px) {
   .slide__card { aspect-ratio: 5 / 6; }
+  /* The text block carries its own backdrop, starting 48px above it, so the venue/time and club
+     lines stay legible over bright photos however many lines the title takes. */
+  .slide__body { z-index: 1; }
+  .slide__body::before {
+    content: "";
+    position: absolute;
+    inset: -48px 0 0;
+    z-index: -1;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    background: linear-gradient(180deg, rgb(11 11 13 / 0) 0, rgb(11 11 13 / 0.74) 64px, rgb(11 11 13 / 0.86) 50%, rgb(11 11 13 / 0.92) 100%);
+    pointer-events: none;
+  }
 }
 @media (min-width: 720px) {
   .slide { padding: 0 max(var(--space-4), calc(50vw - 340px)) 72px; }
+  /* Lighter than the mobile scrim, so the photo keeps its fest energy: dark only on the text side,
+     plus a gentle fade at the foot. */
   .slide__media::after {
-    background: var(--scrim), linear-gradient(90deg, rgb(11 11 13 / 0.72) 0%, rgb(11 11 13 / 0.2) 55%, transparent 80%);
+    background:
+      linear-gradient(90deg, rgb(11 11 13 / 0.88) 0%, rgb(11 11 13 / 0.8) 36%, rgb(11 11 13 / 0.56) 58%, rgb(11 11 13 / 0.2) 76%, rgb(11 11 13 / 0) 90%),
+      linear-gradient(180deg, rgb(11 11 13 / 0) 45%, rgb(11 11 13 / 0.5) 100%);
   }
+  .slide__media .media__img { filter: saturate(1.2) brightness(1.1) contrast(1.05); }
+  /* Titles can run past the dark side on a long name; a soft shadow keeps their edges on bright spots. */
+  .slide__title { text-shadow: 0 1px 18px rgb(11 11 13 / 0.5); }
+  /* Register sits next to its price, not across the card. */
+  .slide__cta { justify-content: flex-start; align-items: center; gap: var(--space-6); }
+  .slide__cta .btn { min-width: 168px; }
   .spot__dots { margin-top: -64px !important; }
-}
-@media (min-width: 720px) and (prefers-color-scheme: dark) {
-  .slide__glow { inset: 22% 2% 0; }
 }
 @media (min-width: 1000px) {
   .slide { padding: 0 max(var(--space-4), calc(50vw - 520px)) 72px; }
@@ -568,18 +685,35 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
 .hero.is-live .hero__media { box-shadow: var(--shadow); }
 .event__when { color: var(--primary-ink); }
 .event__by .org { color: var(--text); }
+/* 44px-tall hit areas for the small inline links (app.css: Map 29px, organiser 24px). The negative
+   block margin gives the height back, so the line and the facts row keep their layout; the extra
+   reach falls into row padding and gaps, never onto another target. */
+.event__by .org { min-height: 44px; margin-block: -10px; }
+.maplink { min-height: 44px; margin-block: -7.5px; }
 .cta { border-color: var(--border); }
 /* Only the team-form variant needs its own scroller; elsewhere let the CTA's glow breathe. */
 .cta:not(.cta--more) { overflow: visible; }
+/* Phones and tablets: the sticky CTA sits flush on the tab bar, on a ground that fills the gap,
+   so scrolling content never shows between the two. */
+@media (max-width: 999.98px) {
+  .event__cta {
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    margin-inline: calc(var(--space-4) * -1);
+    padding: 0 var(--space-4) var(--space-2);
+    background: linear-gradient(180deg, transparent 0 55%, var(--bg) 55%);
+  }
+}
 .cta__price b { font-weight: 800; letter-spacing: -0.02em; }
 .know li .i { color: var(--primary-ink); }
-/* Data stays neutral so the one maroon CTA leads the page. */
+/* Data stays neutral so the one crimson CTA leads the page. */
 .bars__fill { background: var(--text); }
 .facts { border-color: var(--border); }
 
 .invite__from { color: var(--primary-ink); }
 .fclear { color: var(--primary-ink); }
 .club-head__mark { background: var(--stage); color: var(--on-stage); font-stretch: 112%; }
+/* Organiser's club list: a 44px-tall link (app.css: 32px) that keeps the chip's height. */
+.clubs__name { min-height: 44px; margin-block: -6px; }
 
 /* ------------------------------------------------------------------ */
 /* Wallet: the pass runs from IIT maroon into stage crimson            */
@@ -599,8 +733,11 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
 .pass.is-past .pass__stub .seal__fill { fill: var(--primary); }
 .pass.is-past .pass__stub .seal__mark { stroke: var(--primary-contrast); }
 @media (prefers-color-scheme: dark) {
-  .pass:not(.is-past) { box-shadow: var(--shadow), 0 24px 56px -28px rgb(216 27 74 / 0.6); }
+  /* Light only below the pass: spread (-24px) exceeds half the blur (18px), so no crimson at its sides. */
+  .pass:not(.is-past) { box-shadow: var(--shadow), 0 28px 36px -24px rgb(216 27 74 / 0.55); }
 }
+/* QR modules in stage black (the base app draws a maroon-black); the white quiet zone stays. */
+.qr svg path, .qr svg rect:not(:first-child) { fill: #0B0B0D; }
 
 /* ------------------------------------------------------------------ */
 /* Fests                                                               */
@@ -613,6 +750,23 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
 .fest-head--photo h1 { font-weight: 800; letter-spacing: -0.035em; }
 .fest-head--photo .fest-head__dates > .i { color: var(--on-stage); }
 .fest-head--photo .fest-head__media { box-shadow: var(--shadow); }
+
+/* ------------------------------------------------------------------ */
+/* Keyboard focus is never hidden under the bottom chrome (WCAG 2.4.11) */
+/* ------------------------------------------------------------------ */
+
+/* Below 1000px the fixed tab bar (64px), the sticky event CTA (up to 190px measured: e_hiphop,
+   signed in, at 320px) and the organiser form's sticky actions cover the foot of the viewport, and
+   Chrome does not scroll a focused control that is already "in view". scroll-padding-bottom shrinks
+   the area focus scrolling aims for, so a control tabbed to always lands above them. While focus is
+   inside one of those sticky bars it is already visible, so the padding drops to 0 there; otherwise
+   tabbing onto the CTA would jump the page to its end. */
+@media (max-width: 999.98px) {
+  html { scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 16px); }
+  html:has(.event__cta) { scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 12.5rem); }
+  html:has(.form__actions) { scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 6rem); }
+  html:has(.event__cta :focus, .form__actions :focus) { scroll-padding-bottom: 0; }
+}
 
 /* ------------------------------------------------------------------ */
 /* Motion preferences                                                  */
