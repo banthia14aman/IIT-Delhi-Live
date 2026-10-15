@@ -31,12 +31,13 @@ Data shapes:
 ```
 Profile  {id, email, name, entry_no, hostel, phone, role:'student'|'organiser'|'admin', is_iitd:boolean}
 Club     {id, name, slug, owner_id, verified:boolean, instagram}
-Fest     {id, name, slug, starts_on, ends_on, tagline, dates_tbc:boolean}
+Fest     {id, name, slug, starts_on, ends_on, tagline, dates_tbc:boolean, cover|null}
 Event    {id, club_id, fest_id|null, title, description, category, starts_at, ends_at (ISO), venue,
           poster_emoji, poster_color, price (₹ int, 0 = free), eligibility:'iitd_only'|'open',
           iitd_first_until|null (ISO), capacity|null, overbook_pct, reg_mode:'platform'|'external',
           external_url|null, team_min, team_max, featured:boolean, status:'draft'|'published',
-          live_note|null, live_note_at|null, sample:boolean}
+          live_note|null, live_note_at|null, sample:boolean,
+          cover|null}   (key into site/assets/img/<key>.webp + <key>-sm.webp; credits in assets/img/credits.json)
           + computed on read: club, fest, going, waitlisted, by_hostel {hostel:n}, seats_left|null,
             my_registration|null, closes_in_ms|null
 Team     {id, event_id, name, captain_id, invite_code}
