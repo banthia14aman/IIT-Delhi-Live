@@ -1,4 +1,4 @@
-// Run with: node --test site/tests/
+// Run with: node --test site/tests/*.test.mjs
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { store, HOSTELS, DEMO_ACCOUNTS } from '../js/store.js';
@@ -281,4 +281,13 @@ test('postUpdate sets a live note', () => {
   const ev = store.postUpdate('e_open_mic', 'Starting 15 min late');
   assert.equal(ev.live_note, 'Starting 15 min late');
   assert.ok(ev.live_note_at);
+});
+
+test('pass codes are short and typeable at the gate', () => {
+  const ev = makeEvent();
+  const reg = as('guest@iitd.ac.in', () => store.register(ev.id));
+  assert.match(reg.qr_token, /^[A-Z2-9]{4}-[A-Z2-9]{4}$/);
+  store.login('organiser@iitd.ac.in');
+  // Lowercase, no dash, stray spaces: still accepted.
+  assert.equal(store.checkIn(` ${reg.qr_token.replace('-', '').toLowerCase()} `).ok, true);
 });
