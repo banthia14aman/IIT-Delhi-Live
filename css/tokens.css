@@ -1,0 +1,73 @@
+/* IITD Live design tokens. Owner: design agent. See /DESIGN.md for usage rules.
+   Fonts: Bricolage Grotesque (display), Atkinson Hyperlegible Next (body),
+   Atkinson Hyperlegible Mono (pass codes). Google serves unicode-range subsets,
+   so only the latin file loads, plus latin-ext when a page shows ₹.
+   About 85 KB in total, with display=swap so text never waits for fonts. */
+@import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@500&family=Atkinson+Hyperlegible+Next:wght@400;700&family=Bricolage+Grotesque:wght@700..800&display=swap");
+
+:root {
+  color-scheme: light dark;
+
+  /* Day on campus: LHC-concrete ground, white cards, heritage maroon. */
+  --bg: #F4F1F0;               /* concrete: page ground */
+  --surface: #FFFFFF;          /* cards, sheets, bottom nav */
+  --surface-2: #EDE7E6;        /* inputs, chip ground, skeletons */
+  --text: #1C0B11;             /* maroon-black ink */
+  --text-muted: #5F4B52;       /* meta lines, labels, input borders */
+  --border: #DDD2D3;           /* dividers, card hairlines (decorative only) */
+
+  --primary: #8A1538;          /* heritage maroon: brand, primary action, verified seal */
+  --primary-contrast: #FFFFFF; /* text/icons on --primary */
+  --accent: #FFB21E;           /* marigold: featured, IITD-first, pass stub. Fill only, never text */
+  --accent-contrast: #2A0710;  /* text on --accent AND on --live, in both modes */
+
+  --success: #106B3C;          /* registered, checked in, free */
+  --warning: #8A4F00;          /* closes soon, few seats, waitlisted (text) */
+  --danger: #B3261E;           /* errors, invalid pass, cancel */
+  --live: #F04A0E;             /* saffron flame: happening-now pulse + live banner fill */
+
+  --font-display: "Bricolage Grotesque", "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --radius-sm: 8px;            /* chips, inputs, small tiles */
+  --radius: 14px;              /* buttons, cards */
+  --radius-lg: 22px;           /* sheets, pass, hero tiles */
+
+  --shadow-sm: 0 1px 2px rgb(42 7 16 / 0.08), 0 1px 3px rgb(42 7 16 / 0.06);
+  --shadow: 0 12px 28px -12px rgb(42 7 16 / 0.28), 0 2px 6px rgb(42 7 16 / 0.08);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 40px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* Fest night: maroon-black sky over the OAT, stage-lit rose, marigold, saffron. */
+    --bg: #140A0D;
+    --surface: #1F1116;
+    --surface-2: #2C1820;
+    --text: #F8EDEF;
+    --text-muted: #BDA0A9;
+    --border: #432A31;
+
+    --primary: #FF7A98;          /* maroon under stage light: rose. Dark text on it */
+    --primary-contrast: #2A0710;
+    --accent: #FFC23D;
+    --accent-contrast: #2A0710;
+
+    --success: #4CD68E;
+    --warning: #FFC861;
+    --danger: #FF6F61;
+    --live: #FF7A2E;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.5);
+    --shadow: 0 14px 32px -12px rgb(0 0 0 / 0.75), 0 2px 6px rgb(0 0 0 / 0.4);
+  }
+}

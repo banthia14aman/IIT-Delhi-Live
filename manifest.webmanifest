@@ -1,0 +1,22 @@
+{
+  "id": "./",
+  "name": "IITD Live",
+  "short_name": "IITD Live",
+  "description": "Every IIT Delhi event in one feed: see what's on tonight, register in a tap, and keep your QR pass in one wallet.",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#8A1538",
+  "background_color": "#F4F1F0",
+  "categories": ["education", "entertainment", "social", "lifestyle"],
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
