@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IITD Live</title>
+  <meta name="robots" content="noindex">
+  <script>
+    // GitHub Pages serves this for unknown paths. Send people back to the app,
+    // keeping the hash route; a path like /IIT-Delhi-Live/e/abc becomes #/e/abc.
+    (function () {
+      var p = location.pathname, base = './', rest = '';
+      var i = p.indexOf('/IIT-Delhi-Live/');
+      if (i !== -1) { base = p.slice(0, i) + '/IIT-Delhi-Live/'; rest = p.slice(i + 16); }
+      else { base = '/'; rest = p.slice(1); }
+      rest = rest.replace(/\/?index\.html$/, '').replace(/\/+$/, '');
+      var hash = location.hash || (rest ? '#/' + rest : '');
+      location.replace(base + hash);
+    })();
+  </script>
+</head>
+<body>
+  <p><a href="./">Go to IITD Live</a></p>
+</body>
+</html>
