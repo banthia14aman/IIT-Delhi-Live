@@ -266,6 +266,7 @@ const ROUTES = [
   [/^\/org\/scan$/, viewScan],
   [/^\/org\/e\/([^/]+)$/, (r, id) => viewOrgEvent(r, id)],
   [/^\/admin$/, viewAdmin],
+  [/^\/credits$/, viewCredits],
 ];
 
 let page = null; // { title, html, mount, cleanup, static, onStore, nav, flush }
@@ -473,11 +474,11 @@ function eventCard(e) {
     ? `<p class="card__note"><span class="card__notetag${freshNote(e) ? ' is-fresh' : ''}">${I.megaphone}Update</span><span class="card__notetext">${esc(e.live_note)}</span></p>`
     : '';
   return `<article class="card${live ? ' is-live' : ''}${past ? ' is-past' : ''}">
+    <div class="card__art">${media(e)}</div>
     ${dateStub(e)}
     <div class="card__body">
       <div class="card__top">
         <h3 class="card__title"><a href="#/e/${enc(e.id)}"><span class="visually-hidden">${esc(when)}: </span>${esc(e.title)}</a></h3>
-        <span class="tile"${posterStyle(e)} aria-hidden="true">${esc(emojiOf(e))}</span>
       </div>
       ${e.club ? `<p class="card__club">${clubName(e.club)}</p>` : ''}
       <p class="card__where">${I.pin}<span>${esc(e.venue || 'Venue TBC')}${hours > 3 ? ` · ${Math.round(hours)}h` : ''}</span></p>
@@ -486,6 +487,192 @@ function eventCard(e) {
       ${note}
     </div>
   </article>`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Photos: openly licensed covers bundled in assets/img (see #/credits) */
+/* ------------------------------------------------------------------ */
+
+const coverKey = (x) => (/^[a-z0-9-]{1,40}$/.test(String(x?.cover || '')) ? x.cover : '');
+const coverSrc = (key, big = false) => `assets/img/${key}${big ? '' : '-sm'}.webp`;
+/** Photo with the organiser's colour underneath: if the photo is missing, the colour field still reads as a poster. */
+function media(x, { big = false, eager = false, cls = '' } = {}) {
+  const key = coverKey(x);
+  return `<span class="media${cls ? ` ${cls}` : ''}"${posterStyle(x)} aria-hidden="true">${key
+    ? `<img class="media__img" src="${coverSrc(key, big)}" alt="" loading="${eager ? 'eager' : 'lazy'}" decoding="async">`
+    : ''}</span>`;
+}
+// Category rail tiles borrow a representative event photo.
+const CAT_COVER = {
+  Music: 'band', Comedy: 'comedy', Dance: 'dance', Drama: 'theatre', Workshop: 'robotics', Tech: 'hackathon',
+  Talk: 'lecture', Sports: 'sports', Business: 'casecomp', Fest: 'crowd', Film: 'movie', Literary: 'quiz', Social: 'volunteer',
+};
+// A photo that fails to load is removed so the colour field underneath shows instead of a broken image.
+document.addEventListener('error', (ev) => {
+  const img = ev.target;
+  if (img instanceof HTMLImageElement && img.classList.contains('media__img')) img.remove();
+}, true);
+
+/** Poster card for rails: the photo sells, the text confirms (when, where, ₹, who). */
+function posterCard(e) {
+  const live = isLive(e);
+  const d = valid(e.starts_at) ? toDate(e.starts_at) : null;
+  const when = live ? 'Live now' : d ? (isToday(d) ? `Today · ${timeStr(d)}` : `${fmt({ weekday: 'short', day: 'numeric', month: 'short' }).format(d)} · ${timeStr(d)}`) : 'Time TBC';
+  const urgency = urgencyOf(e);
+  return `<article class="pcard${live ? ' is-live' : ''}">
+    <div class="pcard__art">
+      ${media(e)}
+      <span class="pcard__when${live ? ' pcard__when--live' : ''}">${live ? '<span class="pulse" aria-hidden="true"></span>' : ''}${esc(when)}</span>
+      ${e.featured ? `<span class="pcard__feat">${I.star}<span class="visually-hidden">Featured</span></span>` : ''}
+      <span class="pcard__price">${esc(rupees(e.price))}</span>
+    </div>
+    <div class="pcard__body">
+      <h3 class="pcard__title"><a href="#/e/${enc(e.id)}">${esc(e.title)}</a></h3>
+      <p class="pcard__where">${esc(e.venue || 'Venue TBC')}${e.club ? ` · ${esc(e.club.name)}` : ''}</p>
+      <p class="pcard__foot">${e.eligibility === 'iitd_only' ? `<span class="pcard__elig">${I.shield}IITD only</span>` : `<span class="pcard__elig">${I.door}Open</span>`}${e.going > 0 ? `<span>${esc(nf(e.going))} going</span>` : ''}</p>
+      ${urgency.length ? `<p class="pcard__urgent">${I.clock}${esc(urgency[0])}</p>` : ''}
+    </div>
+  </article>`;
+}
+
+function rail(title, list, more, { id = '' } = {}) {
+  if (!list.length) return '';
+  return `<section class="rail"${id ? ` id="${id}"` : ''} aria-label="${esc(title)}">
+    <div class="rail__head"><h2 class="rail__title">${esc(title)}</h2>${more ? `<a class="rail__more" href="${more}">See all${I.chev}</a>` : ''}</div>
+    <div class="rail__track" tabindex="0">${list.map(posterCard).join('')}</div>
+  </section>`;
+}
+
+function festTile(f) {
+  const n = safe(() => store.fest(f.slug)?.events?.length, 0);
+  const dates = festDates(f);
+  return `<article class="ftile">
+    ${media(f, { big: true })}
+    <div class="ftile__body">
+      <p class="ftile__dates">${esc(dates || 'Dates to be confirmed')}${f.dates_tbc ? ' · TBC' : ''}</p>
+      <h3 class="ftile__name"><a href="#/f/${enc(f.slug)}">${esc(f.name)}</a></h3>
+      ${f.tagline ? `<p class="ftile__tag">${esc(f.tagline)}</p>` : ''}
+      <p class="ftile__count">${n ? esc(plural(n, 'event')) : 'Schedule soon'}${I.chev}</p>
+    </div>
+  </article>`;
+}
+
+/** Spotlight slide: full-bleed photo, a glow spilled from the same photo, and the four answers on the image. */
+function slide(e, i) {
+  const key = coverKey(e);
+  const live = isLive(e);
+  const glow = key ? ` style="--img:url('${coverSrc(key)}')"` : '';
+  const club = e.club ? `${esc(e.club.name)}${e.club.verified ? seal('Verified club') : ''}` : '';
+  return `<article class="slide${live ? ' is-live' : ''}" data-slide="${i}"><div class="slide__card"${glow}>
+    <span class="slide__glow" aria-hidden="true"></span>
+    ${media(e, { big: true, eager: i === 0, cls: 'slide__media' })}
+    <div class="slide__body">
+      <p class="slide__when">${live ? `${liveTag('Live now')}` : `<span>${esc(whenLabel(e.starts_at))}</span>`}<span>${esc(e.venue || 'Venue TBC')}</span></p>
+      <h2 class="slide__title"><a href="#/e/${enc(e.id)}">${esc(e.title)}</a></h2>
+      <p class="slide__sub">${club}${e.going > 0 ? `${club ? ' · ' : ''}${esc(nf(e.going))} going` : ''}</p>
+      <div class="slide__cta">
+        <span class="slide__price">${esc(rupees(e.price))}<small>${esc(eligShort(e))}</small></span>
+        <a class="btn btn--glow" href="#/e/${enc(e.id)}" tabindex="-1" aria-hidden="true">${e.reg_mode === 'external' ? 'Details' : 'Register'}</a>
+      </div>
+    </div>
+  </div></article>`;
+}
+
+/** Attribution for every bundled photo (CC BY / BY-SA need it; CC0 and PD get it anyway). */
+function viewCredits() {
+  return {
+    title: 'Photo credits',
+    nav: '',
+    html: `${backLink('#/', 'Explore')}<header class="page-head"><h1 class="h-headline">Photo credits</h1>
+      <p class="lede">Listing photos are openly licensed stock and community photos, used as stand-ins until clubs upload their own posters.</p></header>
+      <ul class="credits" id="credits"><li class="muted">Loading…</li></ul>`,
+    mount(root) {
+      fetch('assets/img/credits.json').then((r) => (r.ok ? r.json() : [])).catch(() => []).then((rows) => {
+        const ul = root.querySelector('#credits');
+        if (!ul) return;
+        ul.innerHTML = rows.length ? rows.map((c) => `<li>
+          ${media({ cover: c.key }, { cls: 'thumb thumb--lg' })}
+          <span><b>${esc(c.title || c.key)}</b><small>by ${esc(c.creator || 'Unknown')} · ${esc(String(c.license || '').toUpperCase())} ${esc(c.license_version || '')}${safeUrl(c.page) ? ` · <a href="${esc(safeUrl(c.page))}" target="_blank" rel="noopener noreferrer">source${I.ext}</a>` : ''}</small></span>
+        </li>`).join('') : '<li class="muted">No photo credits yet.</li>';
+      });
+    },
+  };
+}
+
+function viewDiscover() {
+  const all = safe(() => store.events({ tab: 'upcoming' }), []).filter((e) => !isPast(e));
+  const tonight = safe(() => store.events({ tab: 'tonight' }), []).filter((e) => !isPast(e));
+  const week = safe(() => store.events({ tab: 'week' }), []).filter((e) => !isPast(e));
+  const liveNow = all.filter(isLive);
+  const byGoing = (a, b) => (b.going || 0) - (a.going || 0);
+
+  // Spotlight: what's live, then featured, then the biggest crowds. Max 6, no repeats.
+  const picked = new Map();
+  [...liveNow, ...all.filter((e) => e.featured), ...[...week].sort(byGoing)]
+    .forEach((e) => { if (picked.size < 6 && coverKey(e) && !picked.has(e.id)) picked.set(e.id, e); });
+  const spot = [...picked.values()];
+
+  const cats = safe(() => store.categories(), []).filter((c) => all.some((e) => e.category === c));
+  const learnCats = new Set(['Workshop', 'Talk', 'Tech']);
+  const fests = safe(() => store.fests(), []);
+
+  const html = `${feedTabs('', { liveTonight: liveNow.length > 0 })}
+    <h1 class="visually-hidden">What's on at IIT Delhi</h1>
+    ${spot.length ? `<section class="spot" aria-roledescription="carousel" aria-label="Spotlight">
+      <div class="spot__track" id="spot-track">${spot.map(slide).join('')}</div>
+      ${spot.length > 1 ? `<div class="spot__dots" role="group" aria-label="Choose slide">${spot.map((e, i) => `<button type="button" class="spot__dot" data-action="spot-go" data-value="${i}" aria-label="Show ${esc(e.title)}"${i === 0 ? ' aria-current="true"' : ''}></button>`).join('')}</div>` : ''}
+    </section>` : ''}
+
+    ${liveNow.length ? `<section class="livestrip" aria-label="Happening now">
+      <span class="livestrip__label">${liveTag('Happening now')}</span>
+      <div class="livestrip__track">${liveNow.map((e) => `<a class="livechip" href="#/e/${enc(e.id)}">${media(e, { cls: 'livechip__media' })}<span><b>${esc(e.title)}</b><small>${esc(e.venue || '')} · till ${esc(timeStr(endOf(e)))}</small></span></a>`).join('')}</div>
+    </section>` : ''}
+
+    ${cats.length ? `<section class="rail" aria-label="Browse by vibe">
+      <div class="rail__head"><h2 class="rail__title">Pick your vibe</h2></div>
+      <div class="rail__track rail__track--cats" tabindex="0">${cats.map((c) => `<a class="cat" href="#/?tab=upcoming&cat=${enc(c)}">${media({ cover: CAT_COVER[c] || '', poster_color: '#8A1538' })}<span class="cat__name">${esc(c)}</span></a>`).join('')}</div>
+    </section>` : ''}
+
+    ${rail('Tonight @ IITD', tonight, '#/?tab=tonight')}
+    ${rail('Trending on campus', [...week].sort(byGoing).slice(0, 10), '#/?tab=week')}
+    ${fests.length ? `<section class="rail" aria-label="Fests">
+      <div class="rail__head"><h2 class="rail__title">Fest season</h2><a class="rail__more" href="#/?tab=fests">All fests${I.chev}</a></div>
+      <div class="rail__track rail__track--fests" tabindex="0">${fests.map(festTile).join('')}</div>
+    </section>` : ''}
+    ${rail('Free this week', week.filter((e) => !(e.price > 0)), '#/?tab=week&price=free')}
+    ${rail('Level up: workshops, talks, tech', all.filter((e) => learnCats.has(e.category)).slice(0, 10), '#/?tab=upcoming')}
+    ${rail('Compete', all.filter((e) => e.team_max > 1), '#/?tab=upcoming')}
+    <p class="discover__all"><a class="btn btn--ghost" href="#/?tab=upcoming">Browse every event${I.chev}</a></p>`;
+
+  let timer = null;
+  let stop = null;
+  return {
+    title: 'Explore',
+    nav: 'explore',
+    flush: true,
+    html,
+    mount(root) {
+      const track = root.querySelector('#spot-track');
+      if (!track) return;
+      const slides = [...track.children];
+      const dots = [...root.querySelectorAll('.spot__dot')];
+      const current = () => Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+      const mark = () => { const i = current(); dots.forEach((d, j) => d.setAttribute('aria-current', String(i === j))); };
+      track.addEventListener('scroll', () => requestAnimationFrame(mark), { passive: true });
+      track._go = (i) => track.scrollTo({ left: i * track.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      // Auto-advance, paused while the person is touching, hovering or focused inside; off for reduced motion.
+      if (slides.length > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        let paused = false;
+        const pause = () => { paused = true; };
+        const resume = () => { paused = false; };
+        ['pointerenter', 'focusin', 'touchstart'].forEach((t) => track.addEventListener(t, pause, { passive: true }));
+        ['pointerleave', 'focusout', 'touchend'].forEach((t) => track.addEventListener(t, resume, { passive: true }));
+        timer = setInterval(() => { if (!paused && !document.hidden) track._go((current() + 1) % slides.length); }, 5200);
+      }
+      stop = () => clearInterval(timer);
+    },
+    cleanup() { stop?.(); },
+  };
 }
 
 function hostelBars(byHostel, { limit = 6 } = {}) {
@@ -601,6 +788,11 @@ function feedTabs(active, { liveTonight = false } = {}) {
 
 function viewFeed(route) {
   const qTab = route.query.get('tab');
+  if (!qTab && !feed.q.trim()) return viewDiscover();
+  const qCat = route.query.get('cat');
+  if (qCat != null) feed.category = qCat;
+  const qPrice = route.query.get('price');
+  if (qPrice === 'free' || qPrice === 'paid') feed.price = qPrice;
   if (qTab && TABS.some(([k]) => k === qTab)) feed.tab = qTab;
   const qElig = route.query.get('elig');
   if (qElig === 'open' || qElig === 'iitd_only') feed.eligibility = qElig;
@@ -687,16 +879,7 @@ function festDates(f) {
 function festList() {
   const fests = safe(() => store.fests(), []);
   if (!fests.length) return empty('No fests listed yet', 'When Rendezvous, Tryst or BECon open registrations, their schedules show up here.');
-  return `<div class="grid grid--fests">${fests.map((f) => {
-    const n = safe(() => store.fest(f.slug)?.events?.length, 0);
-    const dates = festDates(f);
-    return `<article class="fest-card">
-      <h2 class="fest-card__name"><a href="#/f/${enc(f.slug)}">${esc(f.name)}</a></h2>
-      ${f.tagline ? `<p class="fest-card__tag">${esc(f.tagline)}</p>` : ''}
-      <p class="fest-card__meta">${I.cal}<span>${esc(dates || 'Dates to be confirmed')}${f.dates_tbc ? ' <span class="chip chip--tbc">Dates TBC</span>' : ''}</span></p>
-      <p class="fest-card__meta">${I.ticket}<span>${n ? esc(plural(n, 'event')) : 'Schedule coming soon'}</span></p>
-    </article>`;
-  }).join('')}</div>`;
+  return `<div class="grid grid--fests">${fests.map(festTile).join('')}</div>`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -808,6 +991,20 @@ function liveBanner(e, { small = false } = {}) {
   </div>`;
 }
 
+/** Entry rules in plain words, before anyone reaches the gate (the #1 Rendezvous question). */
+function knowList(e) {
+  const out = [];
+  if (e.eligibility === 'iitd_only') out.push('IIT Delhi students only. Carry your IITD ID card; the pass is checked against it.');
+  else out.push('Students from other colleges are welcome. Carry your college ID and a government photo ID.');
+  if (iitdFirstActive(e)) out.push(`IITD students get first access until ${shortWhen(e.iitd_first_until)}.`);
+  if (e.reg_mode === 'external') out.push('Registration happens on the organiser’s site. Your pass will come from them.');
+  else out.push('Show the QR from your IITD Live wallet at entry. The short code under it works if the scanner is down.');
+  if (e.capacity) out.push('Seats are limited. If you can’t make it, cancel so the next person on the waitlist gets in.');
+  if (e.team_max > 1) out.push(`Teams of ${teamSize(e)}. The captain registers and shares the invite link.`);
+  if (e.price > 0) out.push('Paid passes are non-transferable unless the organiser allows it.');
+  return out;
+}
+
 function viewEvent(route, id) {
   const e = safe(() => store.event(id), null);
   if (!e) return errorPage('Event not found', 'This event may have been removed by the organiser, or the link is incomplete.');
@@ -832,7 +1029,10 @@ function viewEvent(route, id) {
     ${backLink(fest ? `#/f/${enc(fest.slug)}` : '#/', fest ? fest.name : 'All events')}
     <article class="event">
       <div class="event__poster">
-        <div class="poster"${posterStyle(e)} aria-hidden="true"><span>${esc(emojiOf(e))}</span></div>
+        <div class="hero${live ? ' is-live' : ''}"${coverKey(e) ? ` style="--img:url('${coverSrc(coverKey(e))}')"` : ''}>
+          <span class="hero__glow" aria-hidden="true"></span>
+          ${media(e, { big: true, eager: true, cls: 'hero__media' })}
+        </div>
       </div>
       <div class="event__main">
         ${liveBanner(e)}
@@ -864,6 +1064,11 @@ function viewEvent(route, id) {
           : confirmable('cancel', reg.id, 'Cancel registration', { ask: 'Cancel registration?', yes: 'Yes, cancel', no: 'Keep my pass', cls: 'btn btn--danger btn--sm' })}</div>` : ''}
 
         ${e.description ? `<section class="prose"><h2>About</h2><p>${esc(e.description)}</p></section>` : ''}
+
+        <section class="know" aria-labelledby="know-h">
+          <h2 id="know-h">You should know</h2>
+          <ul>${knowList(e).map((t) => `<li>${I.info}<span>${esc(t)}</span></li>`).join('')}</ul>
+        </section>
 
         <section class="going" aria-labelledby="going-h">
           <h2 id="going-h">${e.going > 0 ? `${esc(nf(e.going))} going` : 'Be the first to go'}${e.waitlisted > 0 ? `<span class="muted"> · ${esc(nf(e.waitlisted))} on the waitlist</span>` : ''}</h2>
@@ -946,7 +1151,7 @@ function showPassSheet(regId) {
       </header>
       <div class="mini-pass">
         <div class="mini-pass__stub">
-          <span class="tile"${posterStyle(e)} aria-hidden="true">${esc(emojiOf(e))}</span>
+          ${media(e, { cls: 'thumb' })}
           <span class="mini-pass__text"><b>${esc(e.title)}</b><small>${esc(whenLabel(e.starts_at))} · ${esc(e.venue || '')}</small></span>
         </div>
         <div class="mini-pass__body">
@@ -996,7 +1201,7 @@ function viewFest(route, slug) {
     : `<span class="slot__elig">${I.door}Open to all</span>`);
 
   const block = (e) => `<a class="slot${isLive(e) ? ' is-live' : ''}" href="#/e/${enc(e.id)}">
-      <span class="slot__top"><span class="tile tile--xs"${posterStyle(e)} aria-hidden="true">${esc(emojiOf(e))}</span><span class="slot__title">${esc(e.title)}</span></span>
+      <span class="slot__top">${media(e, { cls: 'thumb thumb--xs' })}<span class="slot__title">${esc(e.title)}</span></span>
       <span class="slot__meta">${isLive(e) ? 'Live · ' : ''}${esc(timeStr(e.starts_at))}${valid(e.ends_at) ? `–${esc(timeStr(e.ends_at))}` : ''}${e.price > 0 ? ` · ${esc(rupees(e.price))}` : ''}</span>
       ${eligIcon(e)}
     </a>`;
@@ -1018,7 +1223,7 @@ function viewFest(route, slug) {
     const listView = `<ol class="timeline">${slots.map((t) => `<li>
       <h3 class="timeline__time">${esc(t)}</h3>
       <ul>${dayEvents.filter((e) => timeStr(e.starts_at) === t).map((e) => `<li><a class="tl-item${isLive(e) ? ' is-live' : ''}" href="#/e/${enc(e.id)}">
-        <span class="tile"${posterStyle(e)} aria-hidden="true">${esc(emojiOf(e))}</span>
+        ${media(e, { cls: 'thumb' })}
         <span class="tl-item__body"><span class="tl-item__title">${esc(e.title)}</span>
         <span class="tl-item__meta">${isLive(e) ? liveTag() : ''}<span class="chip chip--venue">${I.pin}${esc(e.venue || 'Venue TBC')}</span>${eligChip(e)}${e.price > 0 ? priceChip(e) : ''}</span></span>
       </a></li>`).join('')}</ul></li>`).join('')}</ol>`;
@@ -1032,7 +1237,8 @@ function viewFest(route, slug) {
     title: fest.name,
     nav: 'fests',
     html: `${backLink('#/?tab=fests', 'All fests')}
-      <header class="fest-head">
+      <header class="fest-head${coverKey(fest) ? ' fest-head--photo' : ''}"${coverKey(fest) ? ` style="--img:url('${coverSrc(coverKey(fest))}')"` : ''}>
+        ${coverKey(fest) ? `<span class="hero__glow" aria-hidden="true"></span>${media(fest, { big: true, eager: true, cls: 'fest-head__media' })}` : ''}
         <h1>${esc(fest.name)}</h1>
         ${fest.tagline ? `<p class="lede">${esc(fest.tagline)}</p>` : ''}
         <p class="fest-head__dates">${I.cal}<span>${esc(dates || 'Dates to be confirmed')}${fest.dates_tbc ? ' <span class="chip chip--tbc">TBC</span>' : ''}</span></p>
@@ -1167,7 +1373,7 @@ function passCard(w, user, { open }) {
   const captain = team && user && team.captain_id === user.id;
   return `<details class="pass pass--${esc(r.status)}${past ? ' is-past' : ''}" id="pass-${esc(r.id)}" data-pass="${esc(r.id)}"${isOpen ? ' open' : ''}>
     <summary class="pass__stub">
-      <span class="tile"${posterStyle(e)} aria-hidden="true">${esc(emojiOf(e))}</span>
+      ${media(e, { cls: 'thumb thumb--lg' })}
       <span class="pass__head">
         <span class="pass__when">${isLive(e) ? 'Happening now' : esc(whenLabel(e.starts_at))}</span>
         <span class="pass__title" role="heading" aria-level="2">${esc(e.title)}</span>
@@ -1406,7 +1612,7 @@ function viewOrg() {
   rows.sort((a, b) => (Number(isPast(a.e)) - Number(isPast(b.e))) || (toDate(a.e.starts_at) - toDate(b.e.starts_at)));
 
   const eventRow = ({ e, s }) => `<li><a class="orow" href="#/org/e/${enc(e.id)}">
-      <span class="tile"${posterStyle(e)} aria-hidden="true">${esc(emojiOf(e))}</span>
+      ${media(e, { cls: 'thumb' })}
       <span class="orow__main">
         <span class="orow__title">${esc(e.title)}</span>
         <span class="orow__meta">${isLive(e) ? 'Live now' : esc(whenLabel(e.starts_at))}${e.status === 'draft' ? ' · <span class="status status--draft">Draft</span>' : ''}</span>
@@ -1438,7 +1644,10 @@ function viewOrg() {
   };
 }
 
-const EMOJIS = ['🎤', '🎸', '💃', '🎭', '🤖', '💻', '🚀', '📚', '🏏', '⚽', '🎨', '🎬', '💡', '🧠', '🎉', '🍕'];
+// Bundled, openly licensed cover photos an organiser can pick (assets/img/<key>.webp).
+const COVER_LIBRARY = ['pronite', 'dj', 'openmic', 'band', 'comedy', 'dance', 'hiphop', 'classical', 'theatre', 'streetplay',
+  'fashion', 'movie', 'quiz', 'writing', 'hackathon', 'coding', 'opensource', 'robotics', 'robowars', 'techexpo', 'startup',
+  'pitch', 'conference', 'lecture', 'talk', 'casecomp', 'sports', 'treasure', 'volunteer', 'blood', 'crowd', 'fireworks'];
 const SWATCHES = ['#8A1538', '#D9480F', '#F08C00', '#2B8A3E', '#0B7285', '#1864AB', '#5F3DC4', '#C2255C', '#495057', '#212529'];
 
 function eventForm(e, clubs, fests, cats, user) {
@@ -1477,11 +1686,16 @@ function eventForm(e, clubs, fests, cats, user) {
         <label for="ev-desc">Description</label>
         <textarea id="ev-desc" name="description" rows="4" maxlength="2000" placeholder="What happens, who it is for, what to bring">${v('description')}</textarea>
       </div>
-      <div class="field">
-        <label for="ev-emoji">Poster emoji</label>
-        <input id="ev-emoji" name="poster_emoji" maxlength="8" value="${esc(emojiOf(e))}">
-        <div class="emoji-pick" role="group" aria-label="Pick an emoji">${EMOJIS.map((x) => `<button type="button" data-action="pick-emoji" data-value="${x}" aria-label="Use ${x}">${x}</button>`).join('')}</div>
-      </div>
+      <fieldset class="field covers">
+        <legend>Cover photo</legend>
+        <p class="hint">Pick the photo that sells the vibe. It leads the card, the rails and the event page.</p>
+        <div class="covers__grid">${['', ...COVER_LIBRARY].map((k) => `<label class="cover-opt">
+          <input type="radio" name="cover" value="${k}"${(coverKey(e) || '') === k ? ' checked' : ''}>
+          ${k ? media({ cover: k }) : '<span class="media cover-opt__none">No photo</span>'}
+          <span class="visually-hidden">${k ? esc(k) : 'No photo, use the colour'}</span>
+        </label>`).join('')}</div>
+        <input type="hidden" name="poster_emoji" value="${esc(emojiOf(e))}">
+      </fieldset>
       <div class="field">
         <label for="ev-color">Poster colour</label>
         <div class="swatches">
@@ -1580,6 +1794,7 @@ function readEventForm(form, submitter) {
     eligibility: s('eligibility') === 'iitd_only' ? 'iitd_only' : 'open',
     iitd_first_until: s('eligibility') === 'open' ? fromLocalInput(s('iitd_first_until')) : null,
     poster_emoji: s('poster_emoji') || '🎟️',
+    cover: s('cover') || null,
     poster_color: s('poster_color'),
     status: submitter?.value === 'draft' ? 'draft' : 'published',
   };
@@ -2011,6 +2226,7 @@ const actions = {
     refresh();
   },
   'clear-filters'() { feed.category = ''; feed.price = ''; feed.eligibility = ''; refresh(); },
+  'spot-go'(btn) { document.getElementById('spot-track')?._go?.(Number(btn.dataset.value) || 0); },
   csv(btn) {
     const e = store.event(btn.dataset.id);
     download(`${slugify(e?.title)}-attendees.csv`, `﻿${store.toCSV(btn.dataset.id)}`, 'text/csv;charset=utf-8');
@@ -2034,10 +2250,6 @@ const actions = {
     feed.tab = null;
     toast('Demo data reset');
     go('#/');
-  },
-  'pick-emoji'(btn) {
-    const input = app.querySelector('#ev-emoji');
-    if (input) { input.value = btn.dataset.value; input.dispatchEvent(new Event('input', { bubbles: true })); }
   },
   'pick-color'(btn) {
     const input = app.querySelector('#ev-color');

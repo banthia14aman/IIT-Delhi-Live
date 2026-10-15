@@ -37,6 +37,17 @@
   --shadow-sm: 0 1px 2px rgb(42 7 16 / 0.08), 0 1px 3px rgb(42 7 16 / 0.06);
   --shadow: 0 12px 28px -12px rgb(42 7 16 / 0.28), 0 2px 6px rgb(42 7 16 / 0.08);
 
+  /* Stage: hero photos sit on a dark scrim in both themes, like a lit stage at night. */
+  --stage: #140A0D;
+  --on-stage: #FFF6F1;
+  --on-stage-muted: #F0D6DC;
+  --scrim: linear-gradient(180deg, rgb(20 10 13 / 0) 0%, rgb(20 10 13 / 0.15) 35%, rgb(20 10 13 / 0.72) 68%, rgb(20 10 13 / 0.94) 100%);
+
+  /* Glow: light spilling off a stage. Offset + blur, tinted by what's lit. Use on live, featured and the primary CTA only. */
+  --glow-live: 0 6px 22px -4px rgb(240 74 14 / 0.65), 0 0 0 1px rgb(240 74 14 / 0.35);
+  --glow-accent: 0 10px 30px -8px rgb(255 178 30 / 0.75);
+  --glow-primary: 0 12px 32px -10px rgb(138 21 56 / 0.8);
+
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -66,6 +77,10 @@
     --warning: #FFC861;
     --danger: #FF6F61;
     --live: #FF7A2E;
+
+    --glow-live: 0 6px 26px -4px rgb(255 122 46 / 0.75), 0 0 0 1px rgb(255 122 46 / 0.45);
+    --glow-accent: 0 10px 34px -8px rgb(255 194 61 / 0.7);
+    --glow-primary: 0 12px 36px -10px rgb(255 122 152 / 0.7);
 
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.5);
     --shadow: 0 14px 32px -12px rgb(0 0 0 / 0.75), 0 2px 6px rgb(0 0 0 / 0.4);
