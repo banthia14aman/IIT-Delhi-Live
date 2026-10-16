@@ -476,13 +476,18 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
 .pcard__title { font-weight: 700; letter-spacing: -0.01em; }
 .pcard__title a:focus-visible::after { outline-color: var(--primary); }
 
-.cat { box-shadow: var(--shadow-sm); border-radius: var(--radius); }
-.cat::after { background: linear-gradient(180deg, transparent 38%, rgb(11 11 13 / 0.86)); }
-.cat .media__img { transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* Category tiles: white icon with a crimson duotone layer, a crimson stage-light behind it. */
+.cat { border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+.cat::before { background: radial-gradient(closest-side, rgb(216 27 74 / 0.42), transparent); }
+.cat__icon .duo { fill: var(--crimson); opacity: 1; }
 .cat__name { font-stretch: 108%; letter-spacing: -0.015em; }
 @media (hover: hover) {
-  .cat:hover { box-shadow: var(--shadow-sm); }
-  .cat:hover .media__img { transform: scale(1.06); }
+  .cat:hover { box-shadow: 0 10px 24px -12px rgb(216 27 74 / 0.6), var(--shadow-sm); }
+}
+@media (prefers-color-scheme: dark) {
+  /* Stage black on a stage-black page would vanish: lift the tile and draw its edge. */
+  .cat { background: var(--surface); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+  @media (hover: hover) { .cat:hover { box-shadow: inset 0 0 0 1px rgb(216 27 74 / 0.6), 0 8px 22px -10px rgb(216 27 74 / 0.55); } }
 }
 
 /* Fest tiles: the dates ride on a ticket tag, so a tile reads as a poster even without its photo. */
@@ -516,7 +521,7 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
     box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
     pointer-events: none;
   }
-  .pcard__art::after, .cat::after, .hero::after { border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+  .pcard__art::after, .hero::after { border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); }
   .hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
 }
 
@@ -773,7 +778,6 @@ html { scrollbar-color: color-mix(in srgb, var(--text-muted) 50%, transparent) t
 /* ------------------------------------------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {
-  .pcard__art, .cat .media__img, .livechip { transition: none; }
+  .pcard__art, .livechip { transition: none; }
   .pcard:hover .pcard__art { transform: none; }
-  .cat:hover .media__img { transform: none; }
 }
