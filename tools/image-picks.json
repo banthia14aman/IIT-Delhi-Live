@@ -33,5 +33,55 @@
  "writing": "writing#6",
  "treasure": "campus#1",
  "fireworks": "fireworks#6",
- "campus": "campus#9"
+ "campus": "campus#9",
+ "iitd-open-mic-canopy": "iitd-15#1",
+ "iitd-fest-band-red": "iitd-03#6",
+ "iitd-lhc-atrium-play": "iitd-06#6",
+ "iitd-lhc-lobby": "iitd-06#9",
+ "iitd-dogra-roof": "iitd-09#0",
+ "iitd-night-light-beams": "iitd-14#15",
+ "iitd-pronite-stage": {
+  "ref": "iitd-03#5",
+  "crop": [
+   0.3,
+   0,
+   1,
+   1
+  ]
+ },
+ "iitd-main-building-lawn": "iitd-13#7",
+ "iitd-fest-night-lanterns": "iitd-02#13",
+ "iitd-trophies": "iitd-11#10",
+ "iitd-lhc-lab": "iitd-06#5",
+ "iitd-sac-front": "iitd-04#4",
+ "iitd-bharti-night": "iitd-15#5",
+ "iitd-library-balconies": "iitd-09#13",
+ "iitd-research-park": "iitd-13#6",
+ "iitd-dogra-roof-edge": "iitd-08#8",
+ "iitd-sports-ground-sunrise": "iitd-12#2",
+ "iitd-dogra-stage-view": {
+  "ref": "iitd-08#4",
+  "crop": [
+   0,
+   0,
+   0.88,
+   1
+  ]
+ },
+ "iitd-lhc-pyramid-dark": {
+  "ref": "iitd-06#7",
+  "title": "Lecture Hall Complex glass pyramid, IIT Delhi"
+ },
+ "iitd-main-building-night": "iitd-13#8",
+ "iitd-library-reading-room": "iitd-03#13",
+ "iitd-main-lawn-students": "iitd-17#4",
+ "iitd-bharti-view": "iitd-11#0",
+ "iitd-lhc-front": "iitd-07#6",
+ "iitd-dogra-keynote": "iitd-08#6",
+ "iitd-dogra-main-building": "iitd-08#3",
+ "iitd-lhc-glass-facade": "iitd-07#5",
+ "iitd-fest-night-crowd": "iitd-02#12",
+ "iitd-lhc-courtyard": "iitd-07#4",
+ "iitd-rdv-neon-tree": "iitd-03#7",
+ "iitd-rdv-ribbons": "iitd-01#8"
 }

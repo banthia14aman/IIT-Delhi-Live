@@ -187,8 +187,10 @@ def final():
     outdir = ROOT / "site/assets/img"
     outdir.mkdir(parents=True, exist_ok=True)
     credits, failed = [], []
-    for key, ref in picks.items():  # ref = "<category>#<index>"
-        cat, idx = ref.split("#")
+    for key, ref in picks.items():
+        # ref = "<sheet>#<index>" or {"ref": ..., "crop": [x0, y0, x1, y1] (fractions), "title": override}
+        spec = ref if isinstance(ref, dict) else {"ref": ref}
+        cat, idx = spec["ref"].split("#")
         c = json.loads((ROOT / f"tools/candidates/{cat}.json").read_text())[int(idx)]
         try:
             im = Image.open(io.BytesIO(get(c["full"], 60))).convert("RGB")
@@ -196,6 +198,11 @@ def final():
             failed.append(key)
             print("FAILED", key, e)
             continue
+        if spec.get("crop"):
+            x0, y0, x1, y1 = spec["crop"]
+            im = im.crop((round(x0 * im.width), round(y0 * im.height), round(x1 * im.width), round(y1 * im.height)))
+        if spec.get("title"):
+            c = {**c, "title": spec["title"]}
         for suffix, width in (("", 1280), ("-sm", 560)):
             w = min(width, im.width)
             im.resize((w, round(im.height * w / im.width)), Image.LANCZOS).save(
