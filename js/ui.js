@@ -1648,7 +1648,13 @@ function viewOrg() {
 }
 
 // Bundled, openly licensed cover photos an organiser can pick (assets/img/<key>.webp).
-const COVER_LIBRARY = ['pronite', 'dj', 'openmic', 'band', 'comedy', 'dance', 'hiphop', 'classical', 'theatre', 'streetplay',
+const COVER_LIBRARY = [
+  // Real IIT Delhi venues and fest moments first.
+  'iitd-pronite-stage', 'iitd-fest-band-red', 'iitd-open-mic-canopy', 'iitd-rdv-neon-tree', 'iitd-rdv-ribbons',
+  'iitd-fest-night-crowd', 'iitd-fest-night-lanterns', 'iitd-lhc-atrium-play', 'iitd-dogra-keynote', 'iitd-dogra-stage-view',
+  'iitd-lhc-lab', 'iitd-lhc-lobby', 'iitd-lhc-courtyard', 'iitd-sac-front', 'iitd-bharti-night', 'iitd-library-reading-room',
+  'iitd-sports-ground-sunrise', 'iitd-main-building-lawn', 'iitd-main-building-night', 'iitd-research-park', 'iitd-trophies',
+  'pronite', 'dj', 'openmic', 'band', 'comedy', 'dance', 'hiphop', 'classical', 'theatre', 'streetplay',
   'fashion', 'movie', 'quiz', 'writing', 'hackathon', 'coding', 'opensource', 'robotics', 'robowars', 'techexpo', 'startup',
   'pitch', 'conference', 'lecture', 'talk', 'casecomp', 'sports', 'treasure', 'volunteer', 'blood', 'crowd', 'fireworks',
   'rdv', 'tryst', 'campus'];

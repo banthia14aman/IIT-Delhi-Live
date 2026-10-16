@@ -171,10 +171,10 @@ export function seed(now = new Date()) {
 
   // --- fests ---
   const fests = [
-    { id: 'f_becon', cover: 'conference', name: 'BECon 2027', slug: 'becon-2027', starts_on: '2027-01-29', ends_on: '2027-01-31', tagline: "eDC IIT Delhi's entrepreneurship summit: talks, pitches, startup expo", dates_tbc: true, sample: false },
-    { id: 'f_tryst', cover: 'tryst', name: 'Tryst 2027', slug: 'tryst-2027', starts_on: '2027-02-26', ends_on: '2027-03-01', tagline: "IIT Delhi's tech and management fest", dates_tbc: true, sample: false },
-    { id: 'f_rdv', cover: 'rdv', name: 'Rendezvous 2027', slug: 'rendezvous-2027', starts_on: '2027-09-24', ends_on: '2027-09-27', tagline: "IIT Delhi's cultural fest: competitions and four pronites", dates_tbc: true, sample: false },
-    { id: 'f_demo', cover: 'fireworks', name: 'RDV Demo Fest', slug: 'rdv-demo-fest', starts_on: localDate(at(0, 12)), ends_on: localDate(at(2, 12)), tagline: 'A three-day sample fest to show the schedule view', dates_tbc: false, sample: true },
+    { id: 'f_becon', cover: 'iitd-dogra-keynote', name: 'BECon 2027', slug: 'becon-2027', starts_on: '2027-01-29', ends_on: '2027-01-31', tagline: "eDC IIT Delhi's entrepreneurship summit: talks, pitches, startup expo", dates_tbc: true, sample: false },
+    { id: 'f_tryst', cover: 'iitd-lhc-courtyard', name: 'Tryst 2027', slug: 'tryst-2027', starts_on: '2027-02-26', ends_on: '2027-03-01', tagline: "IIT Delhi's tech and management fest", dates_tbc: true, sample: false },
+    { id: 'f_rdv', cover: 'iitd-rdv-neon-tree', name: 'Rendezvous 2027', slug: 'rendezvous-2027', starts_on: '2027-09-24', ends_on: '2027-09-27', tagline: "IIT Delhi's cultural fest: competitions and four pronites", dates_tbc: true, sample: false },
+    { id: 'f_demo', cover: 'iitd-rdv-ribbons', name: 'RDV Demo Fest', slug: 'rdv-demo-fest', starts_on: localDate(at(0, 12)), ends_on: localDate(at(2, 12)), tagline: 'A three-day sample fest to show the schedule view', dates_tbc: false, sample: true },
   ];
 
   // --- events ---
@@ -395,14 +395,19 @@ export function seed(now = new Date()) {
 
   // Cover photos (openly licensed, see assets/img/credits.json), keyed into site/assets/img/<key>.webp.
   const COVERS = {
-    e_open_mic: 'openmic', e_battle_bands: 'band', e_street_play: 'streetplay', e_quiz: 'quiz',
-    e_movie: 'movie', e_standup: 'comedy', e_dj_night: 'dj', e_fashion: 'fashion', e_treasure: 'treasure',
-    e_classical: 'classical', e_dance_faceoff: 'dance', e_arduino: 'robotics', e_hiphop: 'hiphop',
-    e_hackathon: 'hackathon', e_case_comp: 'casecomp', e_edc_talk: 'startup', e_fin_lecture: 'lecture',
-    e_trials: 'sports', e_blood: 'blood', e_andha_yug: 'theatre', e_hacking: 'coding', e_brand_wars: 'talk',
-    e_writing: 'writing', e_caic_showcase: 'techexpo', e_nss_teach: 'volunteer', e_bnc_talk: 'casecomp',
-    e_open_source: 'opensource', e_becon_pass: 'conference', e_becon_pitch: 'pitch', e_tryst_hack: 'tryst',
-    e_robowars: 'robowars', e_rdv_pronite: 'pronite', e_speranza: 'crowd', e_acoustic_draft: 'openmic',
+    // Real IIT Delhi photos (Wikimedia Commons, CC BY-SA / CC0) matched to the event or its venue;
+    // the four stock covers stay where no honest IITD photo existed.
+    e_open_mic: 'iitd-open-mic-canopy', e_battle_bands: 'iitd-fest-band-red', e_street_play: 'iitd-lhc-atrium-play',
+    e_quiz: 'iitd-lhc-lobby', e_movie: 'iitd-dogra-roof', e_standup: 'iitd-night-light-beams', e_dj_night: 'iitd-pronite-stage',
+    e_fashion: 'fashion', e_treasure: 'iitd-main-building-lawn', e_classical: 'iitd-fest-night-lanterns',
+    e_dance_faceoff: 'iitd-trophies', e_arduino: 'iitd-lhc-lab', e_hiphop: 'iitd-sac-front', e_hackathon: 'iitd-bharti-night',
+    e_case_comp: 'iitd-library-balconies', e_edc_talk: 'iitd-research-park', e_fin_lecture: 'iitd-dogra-roof-edge',
+    e_trials: 'iitd-sports-ground-sunrise', e_blood: 'blood', e_andha_yug: 'iitd-dogra-stage-view',
+    e_hacking: 'iitd-lhc-pyramid-dark', e_brand_wars: 'iitd-main-building-night', e_writing: 'iitd-library-reading-room',
+    e_caic_showcase: 'techexpo', e_nss_teach: 'iitd-main-lawn-students', e_bnc_talk: 'iitd-bharti-view',
+    e_open_source: 'iitd-lhc-front', e_becon_pass: 'iitd-dogra-keynote', e_becon_pitch: 'iitd-dogra-main-building',
+    e_tryst_hack: 'iitd-lhc-glass-facade', e_robowars: 'robowars', e_rdv_pronite: 'iitd-pronite-stage',
+    e_speranza: 'iitd-fest-night-crowd', e_acoustic_draft: 'iitd-open-mic-canopy',
   };
   for (const e of events) e.cover = COVERS[e.id] || null;
 

@@ -49,9 +49,7 @@ test('register requires login', () => {
 });
 
 test('outsider is blocked from iitd_only events', () => {
-  as('friend@gmail.com', () => {
-    assert.throws(() => store.register('e_open_mic'), /only for IIT Delhi/);
-  });
+  // A freshly created future event, so the check doesn't depend on the time of day.
   const ev = makeEvent({ eligibility: 'iitd_only' });
   as('friend@gmail.com', () => assert.throws(() => store.register(ev.id), /only for IIT Delhi/));
   as('student@iitd.ac.in', () => assert.equal(store.register(ev.id).status, 'confirmed'));
@@ -103,7 +101,6 @@ test('cancel promotes the oldest waitlisted registration', () => {
 
 test('duplicate registration is rejected', () => {
   as('student@iitd.ac.in', () => {
-    assert.throws(() => store.register('e_open_mic'), /already registered/); // seeded pass
     const ev = makeEvent();
     store.login('student@iitd.ac.in');
     store.register(ev.id);

@@ -7,7 +7,7 @@ import { seed, localDate, HOSTELS as SEED_HOSTELS, DEMO_ACCOUNTS as SEED_DEMO_AC
 export const HOSTELS = SEED_HOSTELS;
 export const DEMO_ACCOUNTS = SEED_DEMO_ACCOUNTS;
 
-const KEY = 'iitdlive:v2'; // v2: events and fests gained `cover` photos
+const KEY = 'iitdlive:v3'; // v3: covers switched to real IIT Delhi photos
 const DAY = 24 * 60 * 60 * 1000;
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const OUTSIDE_KEY = 'Outside IITD'; // by_hostel bucket for guests without a hostel
