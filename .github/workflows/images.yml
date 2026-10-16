@@ -4,7 +4,7 @@
 name: images
 on:
   push:
-    paths: ["tools/image-queries.json", "tools/image-picks.json", "tools/fetch_images.py"]
+    paths: ["tools/image-queries.json", "tools/image-picks.json", "tools/fetch_images.py", "tools/iitd-sources.json"]
   workflow_dispatch:
 permissions:
   contents: write
@@ -21,7 +21,10 @@ jobs:
       - name: Pick mode from what changed
         id: mode
         run: |
-          if git diff --name-only HEAD~1 HEAD | grep -q image-picks.json; then echo "mode=final" >> "$GITHUB_OUTPUT"; else echo "mode=candidates" >> "$GITHUB_OUTPUT"; fi
+          changed=$(git diff --name-only HEAD~1 HEAD)
+          if echo "$changed" | grep -q image-picks.json; then echo "mode=final" >> "$GITHUB_OUTPUT"
+          elif echo "$changed" | grep -q iitd-sources.json; then echo "mode=iitd" >> "$GITHUB_OUTPUT"
+          else echo "mode=candidates" >> "$GITHUB_OUTPUT"; fi
       - run: python tools/fetch_images.py ${{ steps.mode.outputs.mode }}
       - name: Commit results
         run: |
