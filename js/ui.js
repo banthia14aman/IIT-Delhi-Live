@@ -1,5 +1,6 @@
 // IITD Live: hash router + every view. Talks to the data layer only through store.js.
 import { store, HOSTELS, DEMO_ACCOUNTS } from './store.js';
+import { catIcon } from './cat-icons.js';
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -502,11 +503,6 @@ function media(x, { big = false, eager = false, cls = '' } = {}) {
     ? `<img class="media__img" src="${coverSrc(key, big)}" alt="" loading="${eager ? 'eager' : 'lazy'}" decoding="async">`
     : ''}</span>`;
 }
-// Category rail tiles borrow a representative event photo.
-const CAT_COVER = {
-  Music: 'band', Comedy: 'comedy', Dance: 'dance', Drama: 'theatre', Workshop: 'robotics', Tech: 'hackathon',
-  Talk: 'lecture', Sports: 'sports', Business: 'casecomp', Fest: 'crowd', Film: 'movie', Literary: 'quiz', Social: 'volunteer',
-};
 // A photo that fails to load is removed so the colour field underneath shows instead of a broken image.
 document.addEventListener('error', (ev) => {
   const img = ev.target;
@@ -613,7 +609,10 @@ function viewDiscover() {
     .forEach((e) => { if (picked.size < 6 && coverKey(e) && !picked.has(e.id)) picked.set(e.id, e); });
   const spot = [...picked.values()];
 
-  const cats = safe(() => store.categories(), []).filter((c) => all.some((e) => e.category === c));
+  // Busiest categories first, so the rail leads with where the action is.
+  const catCount = (c) => all.filter((e) => e.category === c).length;
+  const cats = safe(() => store.categories(), []).filter((c) => catCount(c) > 0)
+    .sort((a, b) => catCount(b) - catCount(a) || a.localeCompare(b));
   const learnCats = new Set(['Workshop', 'Talk', 'Tech']);
   const fests = safe(() => store.fests(), []);
 
@@ -631,7 +630,10 @@ function viewDiscover() {
 
     ${cats.length ? `<section class="rail" aria-label="Browse by vibe">
       <div class="rail__head"><h2 class="rail__title">Pick your vibe</h2></div>
-      <div class="rail__track rail__track--cats" tabindex="0">${cats.map((c) => `<a class="cat" href="#/?tab=upcoming&cat=${enc(c)}">${media({ cover: CAT_COVER[c] || '', poster_color: '#8A1538' })}<span class="cat__name">${esc(c)}</span></a>`).join('')}</div>
+      <div class="rail__track rail__track--cats" tabindex="0">${cats.map((c) => {
+        const n = catCount(c);
+        return `<a class="cat" href="#/?tab=upcoming&cat=${enc(c)}">${catIcon(c)}<span class="cat__text"><span class="cat__name">${esc(c)}</span><span class="cat__count">${esc(plural(n, 'event'))}</span></span></a>`;
+      }).join('')}</div>
     </section>` : ''}
 
     ${rail('Tonight @ IITD', tonight, '#/?tab=tonight')}

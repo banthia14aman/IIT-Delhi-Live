@@ -1728,11 +1728,43 @@ legend { font-family: var(--font-display); font-weight: 800; font-size: 1.125rem
 .pcard__urgent .i { width: 14px; height: 14px; }
 
 /* Category tiles */
-.cat { position: relative; display: block; width: 112px; aspect-ratio: 1; border-radius: var(--radius-lg); overflow: hidden; text-decoration: none; box-shadow: var(--shadow-sm); }
-.cat .media { position: absolute; inset: 0; }
-.cat::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 35%, rgb(20 10 13 / 0.85)); }
-.cat__name { position: absolute; left: var(--space-3); right: var(--space-2); bottom: var(--space-2); z-index: 1; color: var(--on-stage); font-family: var(--font-display); font-weight: 800; font-size: 1rem; line-height: 1.1; }
-@media (hover: hover) { .cat:hover { box-shadow: var(--glow-primary); } }
+/* Category tiles: an icon on a small stage. The duotone layer (.duo) carries the accent. */
+.cat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 124px;
+  aspect-ratio: 1;
+  padding: var(--space-3) var(--space-3) var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--stage);
+  color: var(--on-stage);
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  isolation: isolate;
+  transition: box-shadow 200ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cat::before { /* a soft light behind the icon */
+  content: "";
+  position: absolute;
+  left: -20%; top: -30%;
+  width: 90%; aspect-ratio: 1;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 34%, transparent), transparent);
+  pointer-events: none;
+}
+.cat__icon { width: 40px; height: 40px; fill: currentColor; flex: none; transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1); }
+.cat__icon .duo { fill: var(--accent); opacity: 0.9; }
+.cat__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cat__name { color: var(--on-stage); font-family: var(--font-display); font-weight: 800; font-size: 1rem; line-height: 1.1; overflow-wrap: anywhere; }
+.cat__count { color: var(--on-stage-muted); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+@media (hover: hover) {
+  .cat:hover { box-shadow: var(--glow-primary); transform: translateY(-2px); }
+  .cat:hover .cat__icon { transform: translateY(-2px) rotate(-6deg); }
+}
 .cat:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 
 /* Fest tiles: wide, photo-led. Also used for the Fests grid. */
@@ -1811,7 +1843,7 @@ legend { font-family: var(--font-display); font-weight: 800; font-size: 1.125rem
 @media (min-width: 1000px) {
   .slide__card { aspect-ratio: 21 / 9; }
   .slide__title { font-size: 3.75rem; }
-  .cat { width: 132px; }
+  .cat { width: 140px; }
 }
 
 /* Happening-now strip */
@@ -1881,6 +1913,8 @@ legend { font-family: var(--font-display); font-weight: 800; font-size: 1.125rem
 .footer a { color: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
+  .cat, .cat__icon { transition: none; }
+  .cat:hover, .cat:hover .cat__icon { transform: none; }
   .card__art .media__img, .pcard__art .media__img { transition: none; }
   .spot__dot::before { transition: none; }
 }
