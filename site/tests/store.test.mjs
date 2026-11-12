@@ -1,7 +1,7 @@
 // Run with: node --test site/tests/*.test.mjs
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { store, HOSTELS, DEMO_ACCOUNTS } from '../js/store.js';
+import { store, HOSTELS, DEMO_ACCOUNTS } from '../js/store-local.js';
 import { seed } from '../js/seed.js';
 
 const HOUR = 3600 * 1000;
