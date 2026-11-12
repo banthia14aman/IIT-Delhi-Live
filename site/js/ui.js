@@ -1,5 +1,5 @@
 // IITD Live: hash router + every view. Talks to the data layer only through store.js.
-import { store, HOSTELS, DEMO_ACCOUNTS } from './store.js';
+import { store, HOSTELS, DEMO_ACCOUNTS, DEMO_PASSWORD } from './store.js';
 import { catIcon } from './cat-icons.js';
 
 /* ------------------------------------------------------------------ */
@@ -304,6 +304,8 @@ function renderRoute() {
   page.route = route;
   paint(page);
   window.scrollTo(0, 0);
+  const isEvent = route.parts[0] === 'e' && route.parts[1];
+  store.track(isEvent ? 'event_view' : 'page_view', { event_id: isEvent ? route.parts[1] : null });
   const h1 = app.querySelector('h1');
   if (h1 && renders++) { h1.tabIndex = -1; h1.focus({ preventScroll: true }); }
 }
@@ -317,7 +319,7 @@ function guard(route) {
 }
 
 let ownUntil = 0;
-const mine = () => { ownUntil = Date.now() + 400; };
+const mine = () => { ownUntil = Date.now() + 4000; }; // writes are async now: cover the round trip
 /** Re-render on any store change; keep what the person was typing unless the change was theirs. */
 function refresh() {
   if (!page) return;
@@ -365,11 +367,12 @@ function updateChrome(p) {
   const user = me();
   const nav = p?.nav || '';
   const organiser = user && (user.role === 'organiser' || user.role === 'admin');
+  const checker = user?.role === 'checker';
   const tabMe = document.getElementById('tab-me');
   if (tabMe) {
-    tabMe.href = organiser ? '#/org' : user ? '#/onboarding' : loginHref('#/onboarding');
-    tabMe.dataset.nav = organiser ? 'org' : 'me';
-    tabMe.querySelector('span').textContent = organiser ? 'Organise' : user ? 'Me' : 'Log in';
+    tabMe.href = organiser ? '#/org' : checker ? '#/org/scan' : user ? '#/onboarding' : loginHref('#/onboarding');
+    tabMe.dataset.nav = organiser || checker ? 'org' : 'me';
+    tabMe.querySelector('span').textContent = organiser ? 'Organise' : checker ? 'Gate' : user ? 'Me' : 'Log in';
   }
   document.querySelectorAll('[data-nav]').forEach((a) => {
     if (a.dataset.nav === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
@@ -1104,14 +1107,15 @@ function viewEvent(route, id) {
   };
 }
 
-function doRegister(eventId, opts = {}) {
+async function doRegister(eventId, opts = {}) {
   const here = `#/e/${enc(eventId)}`;
   const isTeam = !!(opts.teamName || opts.teamCode);
+  store.track('register_click', { event_id: eventId, logged_in: !!me(), team: isTeam });
   if (!me()) { go(loginHref(isTeam ? here : `${here}?register=1`)); return null; }
   if (needsOnboarding()) { go(`#/onboarding?next=${enc(isTeam ? here : `${here}?register=1`)}`); return null; }
   mine();
   try {
-    const reg = store.register(eventId, opts);
+    const reg = await store.register(eventId, opts);
     if (reg?.status === 'waitlisted') toast('You’re on the waitlist. We’ll move you up automatically if a seat frees.');
     else showPassSheet(reg?.id);
     return reg;
@@ -1314,6 +1318,7 @@ function teamJoinState(code) {
 }
 
 function viewTeam(route, code) {
+  if (safe(() => store.team(code), null) === undefined) return { title: 'Team invite', nav: 'explore', html: '<p class="boot">Loading the team…</p>' };
   const st = teamJoinState(code);
   if (!st) return errorPage('Invite not valid', 'This team invite does not match any team. Ask your captain to send the link again.');
   const { team, e, members, state } = st;
@@ -1351,8 +1356,8 @@ function viewTeam(route, code) {
   };
 }
 
-function joinTeam(eventId, code) {
-  const reg = doRegister(eventId, { teamCode: code });
+async function joinTeam(eventId, code) {
+  const reg = await doRegister(eventId, { teamCode: code });
   // pushState (not a hash change) so the "You're in" sheet stays up over the event page.
   if (reg) { history.pushState(null, '', `#/e/${enc(eventId)}`); renderRoute(); }
 }
@@ -1399,6 +1404,7 @@ function passCard(w, user, { open }) {
         ${user?.entry_no ? `<div><dt>Entry no.</dt><dd class="mono">${esc(user.entry_no)}</dd></div>` : ''}
         ${user?.hostel ? `<div><dt>Hostel</dt><dd>${esc(user.hostel)}</dd></div>` : ''}
         ${team ? `<div><dt>Team</dt><dd>${esc(team.name)}</dd></div>` : ''}
+        ${r.amount_due > 0 ? `<div><dt>Payment</dt><dd>${r.paid_at ? `₹${esc(nf(r.amount_due))} paid` : `<b>₹${esc(nf(r.amount_due))}</b> at the gate`}</dd></div>` : ''}
         <div><dt>Status</dt><dd>${statusChip}</dd></div>
       </dl>
       <div class="pass__actions">
@@ -1437,7 +1443,10 @@ function viewWallet(route) {
 
 document.addEventListener('toggle', (ev) => {
   const d = ev.target;
-  if (d instanceof HTMLDetailsElement && d.dataset.pass) passOpen.set(d.dataset.pass, d.open);
+  if (d instanceof HTMLDetailsElement && d.dataset.pass) {
+    passOpen.set(d.dataset.pass, d.open);
+    if (d.open) store.track('pass_open', { event_id: safe(() => store.wallet(), []).find((w) => w.registration.id === d.dataset.pass)?.event?.id || null });
+  }
 }, true);
 
 /* ------------------------------------------------------------------ */
@@ -1475,28 +1484,38 @@ function viewLogin(route) {
   }
   const accounts = Array.isArray(DEMO_ACCOUNTS) ? DEMO_ACCOUNTS : [];
   const finishing = /register=1|team=1|join=1/.test(next);
+  const signup = route.query.get('mode') === 'signup';
+  const swap = `#/login?${signup ? '' : 'mode=signup&'}next=${enc(next)}`;
   return {
-    title: 'Log in',
+    title: signup ? 'Create account' : 'Log in',
     nav: 'me',
     static: true,
     html: `<section class="auth">
-      <h1>${finishing ? 'Log in to finish registering' : 'Log in'}</h1>
+      <h1>${signup ? 'Create your account' : finishing ? 'Log in to finish registering' : 'Log in'}</h1>
       <p class="lede">${finishing ? 'We’ll complete your registration as soon as you’re in.' : 'Browsing is open to everyone. You need an account only to register, join a team or keep passes.'}</p>
 
-      <form class="form" data-form="login" novalidate>
+      <form class="form" data-form="${signup ? 'signup' : 'login'}" novalidate>
         <input type="hidden" name="next" value="${esc(next)}">
+        ${signup ? `<div class="field">
+          <label for="su-name">Your name</label>
+          <input id="su-name" name="name" autocomplete="name" required placeholder="As on your ID card">
+        </div>` : ''}
         <div class="field">
           <label for="login-email">Email</label>
           <input id="login-email" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="you@iitd.ac.in" aria-describedby="login-hint">
           <p class="hint" id="login-hint" aria-live="polite">Use your @iitd.ac.in email to get the IITD verified seal.</p>
         </div>
-        <button class="btn btn--block" type="submit">Continue</button>
-        <p class="fine">In the real app we email a one-time code to this address, so only the owner of an IITD inbox gets the seal. This demo skips the code and logs you straight in.</p>
+        <div class="field">
+          <label for="login-password">Password${signup ? ' <small>(8+ characters)</small>' : ''}</label>
+          <input id="login-password" name="password" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="${signup ? 8 : 1}">
+        </div>
+        <button class="btn btn--block" type="submit">${signup ? 'Create account' : 'Log in'}</button>
+        <p class="fine">${signup ? 'Already have an account?' : 'New to IITD Live?'} <a href="${esc(swap)}">${signup ? 'Log in' : 'Create an account'}</a></p>
       </form>
 
-      ${accounts.length ? `<div class="demo">
+      ${accounts.length && !signup ? `<div class="demo">
         <h2>Try a demo account</h2>
-        <p class="muted">One tap. Each shows a different side of the app.</p>
+        <p class="muted">One tap. Each shows a different side of the app. Password for all: <code class="mono">${esc(DEMO_PASSWORD)}</code></p>
         <div class="demo__list">${accounts.map((a) => `<button type="button" class="demo__btn" data-action="demo-login" data-email="${esc(a.email)}" data-next="${esc(next)}">
           <span class="avatar" aria-hidden="true">${esc(initials(a.label, a.email))}</span>
           <span class="demo__text"><b>${esc(a.label)}</b><small>${esc(a.email)}</small></span>
@@ -1562,6 +1581,7 @@ function viewOnboarding(route) {
       ${needs ? '' : `<nav class="linklist" aria-label="Account">
         <a href="#/wallet">${I.ticket}<span>My passes</span>${I.chev}</a>
         <a href="#/org">${I.flag}<span>${organiser ? 'Organiser dashboard' : 'Run a club? Post events'}</span>${I.chev}</a>
+        ${['checker', 'organiser', 'admin'].includes(user.role) ? `<a href="#/org/scan">${I.scan}<span>Gate check-in</span>${I.chev}</a>` : ''}
         ${isAdmin(user) ? `<a href="#/admin">${I.shield}<span>Admin</span>${I.chev}</a>` : ''}
         <button type="button" data-action="logout">${I.logout}<span>Log out</span></button>
       </nav>`}
@@ -1875,7 +1895,8 @@ function viewOrgEvent(route, id) {
   const limit = e.capacity ? Math.floor(e.capacity * (1 + (e.overbook_pct || 0) / 100)) : null;
   const order = { checked_in: 0, confirmed: 1, waitlisted: 2, cancelled: 3 };
   people.sort((a, b) => (order[a.registration?.status] ?? 9) - (order[b.registration?.status] ?? 9));
-  const link = linkTo(`#/e/${enc(e.id)}`);
+  const link = linkTo(`#/e/${enc(e.id)}?src=wa`);
+  const crew = safe(() => store.checkers(e.id), []) || [];
 
   return {
     title: `${e.title} dashboard`,
@@ -1911,6 +1932,16 @@ function viewOrgEvent(route, id) {
           </form>
         </section>
 
+        <section class="panel" aria-labelledby="gt-h">
+          <h2 id="gt-h">Gate team</h2>
+          <p class="muted">Volunteers who scan passes for this event. They see each holder’s name, entry no. and hostel, nothing else.</p>
+          ${crew.length ? `<ul class="adm">${crew.map((c) => `<li><span class="adm__name">${esc(c.name || c.email)}<small class="muted">${esc(c.email)}</small></span><button class="btn btn--sm btn--ghost" data-action="checker-remove" data-id="${esc(e.id)}" data-user="${esc(c.id)}">Remove</button></li>`).join('')}</ul>` : ''}
+          <form class="form" data-form="checker-add" data-id="${esc(e.id)}" novalidate>
+            <label for="chk-email">Add by email <small>(they need an IITD Live account)</small></label>
+            <div class="inline"><input id="chk-email" name="email" type="email" inputmode="email" autocomplete="off" placeholder="volunteer@iitd.ac.in" required><button class="btn" type="submit">Add</button></div>
+          </form>
+        </section>
+
         <section class="panel" aria-labelledby="hos-h">
           <h2 id="hos-h">Where people are from</h2>
           ${hostelBars(s.by_hostel || e.by_hostel, { limit: 8 }) || '<p class="muted">No registrations yet.</p>'}
@@ -1921,7 +1952,7 @@ function viewOrgEvent(route, id) {
         <div class="panel__head">
           <h2 id="att-h">Attendees <span class="muted num">(${esc(nf(people.length))})</span></h2>
           <div class="panel__actions">
-            <a class="btn btn--ghost btn--sm" href="#/org/scan">${I.scan}Scan</a>
+            <a class="btn btn--ghost btn--sm" href="#/org/scan?event=${enc(e.id)}">${I.scan}Gate</a>
             <button class="btn btn--ghost btn--sm" data-action="csv" data-id="${esc(e.id)}"${people.length ? '' : ' disabled'}>${I.download}Download CSV</button>
           </div>
         </div>
@@ -1987,22 +2018,33 @@ function mountEventForm(root, clubs) {
 /* Scanner  #/org/scan                                                 */
 /* ------------------------------------------------------------------ */
 
+
+// Gate: the checker picks an event, scans (or types) a pass, matches the holder to their ID card, then admits.
+const gate = { event: '', pending: null }; // pending = {code, collect} for the pass on screen
 let scanner = null;
 let scanBusy = false;
 let lastScan = { token: '', at: 0 };
-const scanLog = [];
 
-function viewScan() {
-  const user = me();
-  const canScan = safe(() => store.myClubs(), []).length || isAdmin(user);
+const GATE_REASON = {
+  valid: 'Valid pass', unpaid: 'Payment due', admitted: 'Admitted', already: 'Already used', invalid: 'Not a valid pass',
+  wrong_event: 'Pass is for a different event', not_staff: 'You’re not on the gate team for this pass',
+  cancelled: 'This pass was cancelled', waitlisted: 'Still on the waitlist, not confirmed',
+};
+
+function viewScan(route) {
+  if (!safe(() => store.canScan(), false)) {
+    return errorPage('Gate access needed', 'Ask the event’s organiser or an admin to add your email to the gate team, then open this page again.', `<a class="btn" href="${esc(loginHref('#/org/scan'))}">Switch account</a>`);
+  }
+  const want = route.query.get('event');
+  if (want) gate.event = want;
   return {
-    title: 'Scan passes',
+    title: 'Gate check-in',
     nav: 'org',
     static: true,
-    onStore(root) { renderScanLog(root); },
-    html: `${backLink('#/org', 'Organiser')}
-      <header class="page-head"><h1>Check-in</h1><p class="lede">Point the camera at a pass. If the camera won’t open, type the code instead.</p></header>
-      ${canScan ? '' : `<p class="note">${I.info}<span>You can check in passes only for your own club’s events. <a href="#/org">Set up a club</a>.</span></p>`}
+    onStore(root) { renderGate(root); },
+    html: `<header class="page-head"><h1>Gate check-in</h1><p class="lede">Scan the pass, match the name to their ID card, then admit.</p></header>
+      <div class="field"><label for="gate-event">Checking in for</label><select id="gate-event" data-no-restore></select></div>
+      <p class="strip__rate" id="gate-count"></p>
       <div class="scan">
         <div class="scan__cam">
           <div id="reader" class="reader"></div>
@@ -2014,29 +2056,53 @@ function viewScan() {
           <form class="form" data-form="manual-checkin" novalidate>
             <label for="scan-code">Type a code instead</label>
             <div class="inline">
-              <input id="scan-code" name="code" required autocomplete="off" autocapitalize="off" spellcheck="false" class="mono" placeholder="Code under the QR" data-no-restore>
-              <button class="btn" type="submit">Check in</button>
+              <input id="scan-code" name="code" required autocomplete="off" autocapitalize="characters" spellcheck="false" class="mono" placeholder="e.g. 7KQ4-M2XP" data-no-restore>
+              <button class="btn" type="submit">Look up</button>
             </div>
           </form>
-          <h2 class="section-title section-title--sm">This session</h2>
+          <h2 class="section-title section-title--sm">Recent scans at this gate</h2>
           <ul class="scanlog" id="scan-log"></ul>
         </div>
       </div>
       <div id="scan-result" class="verdict-wrap" role="status" aria-live="assertive"></div>`,
-    mount(root) { renderScanLog(root); },
+    mount(root) {
+      root.querySelector('#gate-event')?.addEventListener('change', (ev) => {
+        gate.event = ev.target.value;
+        gate.pending = null;
+        const box = root.querySelector('#scan-result');
+        if (box) box.innerHTML = '';
+        renderGate(root);
+      });
+      renderGate(root);
+    },
     cleanup() { stopScanner(); },
   };
 }
 
-function renderScanLog(root) {
-  const ul = root.querySelector('#scan-log');
-  if (!ul) return;
-  ul.innerHTML = scanLog.length
-    ? scanLog.slice(0, 12).map((x) => `<li class="${x.ok ? 'is-ok' : 'is-bad'}">${x.ok ? I.check : I.x}<span><b>${esc(x.name)}</b> ${esc(x.detail)}</span><time>${esc(timeStr(x.at))}</time></li>`).join('')
-    : '<li class="scanlog__empty">Check-ins you make here appear in this list.</li>';
+function renderGate(root) {
+  const sel = root.querySelector('#gate-event');
+  if (!sel) return;
+  const evs = safe(() => store.gateEvents(), []);
+  if (evs === undefined) { sel.innerHTML = '<option>Loading your events…</option>'; sel.disabled = true; return; }
+  if (!evs.length) {
+    sel.innerHTML = '<option value="">No events to check in right now</option>';
+    sel.disabled = true;
+    root.querySelector('#scan-log').innerHTML = '<li class="scanlog__empty">When an organiser adds you to an event’s gate team, it shows up here.</li>';
+    return;
+  }
+  if (!evs.some((e) => e.id === gate.event)) gate.event = (evs.find((e) => isLive(e)) || evs.find((e) => !isPast(e)) || evs[0]).id;
+  sel.disabled = false;
+  sel.innerHTML = evs.map((e) => `<option value="${esc(e.id)}"${e.id === gate.event ? ' selected' : ''}>${esc(e.title)} · ${esc(isLive(e) ? 'live now' : whenLabel(e.starts_at))}</option>`).join('');
+  const s = safe(() => store.stats(gate.event), null);
+  const count = root.querySelector('#gate-count');
+  if (count && s) count.textContent = `${nf(s.checked_in || 0)} of ${nf(s.confirmed || 0)} confirmed are in`;
+  const log = safe(() => store.gateLog(gate.event), []) || [];
+  root.querySelector('#scan-log').innerHTML = log.length
+    ? log.slice(0, 15).map((x) => `<li class="${x.result === 'admitted' ? 'is-ok' : 'is-bad'}">${x.result === 'admitted' ? I.check : I.x}<span><b>${esc(x.holder || x.code)}</b> ${esc(GATE_REASON[x.result] || x.result)}${x.by ? ` <small class="muted">by ${esc(x.by)}</small>` : ''}</span><time>${esc(timeStr(x.at))}</time></li>`).join('')
+    : '<li class="scanlog__empty">Scans at this gate appear here, from every checker.</li>';
 }
 
-/** Accept a UUID typed without dashes or in capitals. */
+/** Accept a code typed without the dash or in lower case. */
 function normaliseCode(raw) {
   let s = String(raw || '').trim();
   const bare = s.replace(/[\s-]/g, '');
@@ -2044,44 +2110,70 @@ function normaliseCode(raw) {
   return s;
 }
 
-function doCheckIn(raw) {
+/** The ID-check card: everything the checker compares against the student's ID. */
+function holderCard(t) {
+  const h = t?.holder || {};
+  return `<dl class="pass__holder">
+      <div class="pass__holder-name"><dt>Name</dt><dd class="pass__name">${esc(h.name || h.email || 'Unknown')}</dd></div>
+      <div><dt>ID</dt><dd>${h.is_iitd ? `<span class="idchip idchip--iitd">${seal('IITD verified')}IITD</span>` : '<span class="idchip">Guest: check college ID</span>'}</dd></div>
+      ${h.entry_no ? `<div><dt>Entry no.</dt><dd class="mono">${esc(h.entry_no)}</dd></div>` : ''}
+      ${h.hostel ? `<div><dt>Hostel</dt><dd>${esc(h.hostel)}</dd></div>` : ''}
+      ${t?.team ? `<div><dt>Team</dt><dd>${esc(t.team)}</dd></div>` : ''}
+      <div><dt>Pass</dt><dd class="mono">${esc(t?.code || '')}</dd></div>
+    </dl>`;
+}
+
+function verdictHtml(res) {
+  const t = res?.ticket;
+  const r = res?.reason || 'invalid';
+  const ev = t?.event?.title ? `<p class="verdict__sub">${esc(t.event.title)}</p>` : '';
+  const next = '<button class="btn btn--ghost btn--block" data-action="scan-next">Scan next</button>';
+  if (r === 'valid' || r === 'unpaid') {
+    const due = r === 'unpaid' ? Number(t?.amount_due || 0) : 0;
+    return `<div class="verdict verdict--ok"><span class="verdict__disc">${I.check}</span>
+      <p class="verdict__name">${due ? `Collect ₹${esc(nf(due))}` : 'Check their ID card'}</p>${ev}
+      ${holderCard(t)}
+      <button class="btn btn--block" data-action="gate-admit"${due ? ' data-collect="1"' : ''}>${due ? `Collected ₹${esc(nf(due))}, admit` : 'Name matches, admit'}</button>
+      ${next}</div>`;
+  }
+  if (r === 'admitted') {
+    return `<div class="verdict verdict--ok"><span class="verdict__disc">${I.check}</span>
+      <p class="verdict__name">${esc(t?.holder?.name || 'Admitted')}</p>
+      <p class="verdict__sub">Admitted ${esc(timeStr(t?.checked_in_at || new Date()))}${t?.paid_at && t?.amount_due ? ` · ₹${esc(nf(t.amount_due))} paid` : ''}</p>${ev}
+      <button class="btn btn--block" data-action="scan-next">Scan next</button></div>`;
+  }
+  const extra = r === 'already' && t?.checked_in_at ? ` at ${timeStr(t.checked_in_at)}${t.checked_in_by ? ` by ${t.checked_in_by}` : ''}` : '';
+  return `<div class="verdict verdict--bad"><span class="verdict__disc">${I.x}</span>
+    <p class="verdict__name">${esc((GATE_REASON[r] || r) + extra)}</p>${ev}
+    ${t ? holderCard(t) : '<p class="verdict__sub">Ask them to open the pass in their wallet, or type the code under the QR.</p>'}
+    <button class="btn btn--block" data-action="scan-next">Scan next</button></div>`;
+}
+
+async function doCheckIn(raw) {
   const code = normaliseCode(raw);
   if (!code) { toast('Type the code printed under the QR.', 'error'); return; }
-  mine();
-  let res;
-  try { res = store.checkIn(code); } catch (err) { res = { ok: false, reason: errMsg(err) }; }
-  const token = code.split(/[/:#?=]/).pop();
-  // Team name and check-in time come from the attendee row.
-  const row = res?.event?.id ? safe(() => store.attendees(res.event.id), []).find((a) => a.registration?.qr_token === token) || null : null;
-  const name = res?.profile?.name || res?.profile?.email || '';
-  const ev = res?.event?.title || '';
-  const teamName = row?.team?.name;
+  if (!gate.event) { toast('Pick the event you’re checking in for.', 'error'); return; }
   const box = app.querySelector('#scan-result');
-  let detail;
-  if (res?.ok) {
-    detail = ev;
-    if (box) box.innerHTML = `<div class="verdict verdict--ok"><span class="verdict__disc">${I.check}</span>
-      <p class="verdict__name">${esc(name || 'Checked in')}</p>
-      <p class="verdict__sub">${esc([teamName ? `Team ${teamName}` : '', res.profile?.hostel, ev].filter(Boolean).join(' · '))}</p>
-      <p class="verdict__sub">Checked in ${esc(timeStr(new Date()))}</p>
-      <button class="btn btn--block" data-action="scan-next">Scan next</button></div>`;
-    navigator.vibrate?.(60);
-  } else {
-    let reason = res?.reason || 'invalid pass';
-    if (reason === 'already checked in' && row?.registration?.checked_in_at) reason = `Already checked in at ${timeStr(row.registration.checked_in_at)}`;
-    else if (reason === 'not your event') reason = 'Pass is for another club’s event';
-    else if (reason === 'invalid pass') reason = 'Not a valid pass';
-    reason = reason.charAt(0).toUpperCase() + reason.slice(1);
-    detail = reason;
-    if (box) box.innerHTML = `<div class="verdict verdict--bad"><span class="verdict__disc">${I.x}</span>
-      <p class="verdict__name">${esc(reason)}</p>
-      <p class="verdict__sub">${esc([name, ev].filter(Boolean).join(' · ') || 'Ask them to open the pass in their wallet, or type the code.')}</p>
-      <button class="btn btn--block" data-action="scan-next">Scan next</button></div>`;
-    navigator.vibrate?.([80, 60, 80]);
-  }
+  if (box) box.innerHTML = '<div class="verdict"><p class="verdict__sub">Checking the pass…</p></div>';
+  let res;
+  try { res = await store.lookup(code, gate.event); } catch (err) { res = { ok: false, reason: errMsg(err) }; }
+  gate.pending = res?.reason === 'valid' || res?.reason === 'unpaid' ? code : null;
+  if (box) box.innerHTML = verdictHtml(res);
+  navigator.vibrate?.(gate.pending ? 60 : [80, 60, 80]);
+  box?.querySelector('[data-action="gate-admit"], [data-action="scan-next"]')?.focus({ preventScroll: true });
+  renderGate(app);
+}
+
+async function gateAdmit(btn) {
+  const code = gate.pending;
+  if (!code) return;
+  btn.disabled = true;
+  const res = await store.admit(code, gate.event, btn.dataset.collect === '1');
+  gate.pending = null;
+  const box = app.querySelector('#scan-result');
+  if (box) box.innerHTML = verdictHtml(res);
+  navigator.vibrate?.(res?.ok ? 60 : [80, 60, 80]);
   box?.querySelector('[data-action="scan-next"]')?.focus({ preventScroll: true });
-  scanLog.unshift({ ok: !!res?.ok, name: name || 'Unknown pass', detail, at: new Date() });
-  renderScanLog(app);
 }
 
 async function startScanner() {
@@ -2093,12 +2185,11 @@ async function startScanner() {
       { facingMode: 'environment' },
       { fps: 10, qrbox: (w, h) => { const s = Math.floor(Math.min(w, h) * 0.7); return { width: s, height: s }; } },
       (text) => {
-        if (scanBusy) return;
+        if (scanBusy || gate.pending) return; // finish the pass on screen first
         if (text === lastScan.token && Date.now() - lastScan.at < 4000) return;
         lastScan = { token: text, at: Date.now() };
         scanBusy = true;
-        doCheckIn(text);
-        setTimeout(() => { scanBusy = false; }, 1500);
+        doCheckIn(text).finally(() => setTimeout(() => { scanBusy = false; }, 800));
       },
       () => {},
     );
@@ -2128,42 +2219,78 @@ async function stopScanner() {
 /* Admin  #/admin                                                      */
 /* ------------------------------------------------------------------ */
 
-function viewAdmin() {
+const ROLES = ['student', 'checker', 'organiser', 'admin'];
+const adminUi = { q: '' };
+
+function viewAdmin(route) {
   const user = me();
   if (!isAdmin(user)) {
-    return errorPage('Admins only', 'Log in with the admin demo account to verify clubs and feature events.', `<a class="btn" href="${esc(loginHref('#/admin'))}">Switch account</a>`);
+    return errorPage('Admins only', 'Log in with an admin account to manage clubs, events, roles and the gate.', `<a class="btn" href="${esc(loginHref('#/admin'))}">Switch account</a>`);
   }
-  const clubs = safe(() => store.clubs(), []).sort((a, b) => Number(a.verified) - Number(b.verified) || a.name.localeCompare(b.name));
-  const events = safe(() => store.events({ tab: 'upcoming' }), []);
-  const pending = clubs.filter((c) => !c.verified).length;
-  return {
-    title: 'Admin',
-    nav: 'me',
-    html: `<header class="page-head"><h1>Admin</h1><p class="lede">Verify clubs so students can trust them, and feature events at the top of their tab.</p></header>
-      <section class="panel" aria-labelledby="ac-h">
-        <h2 id="ac-h">Clubs <span class="muted num">(${esc(pending)} pending)</span></h2>
+  const tab = route.query.get('tab') || 'overview';
+  const tabs = `<nav class="tabs" aria-label="Admin sections">${[['overview', 'Overview'], ['people', 'People & roles'], ['clubs', 'Clubs'], ['events', 'Events & gate']]
+    .map(([k, l]) => `<a class="tab" href="#/admin?tab=${k}"${k === tab ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav>`;
+  const head = `<header class="page-head"><h1>Admin</h1><p class="lede">Live numbers, people and roles, club verification and the gate.</p></header>${tabs}`;
+  const loading = '<p class="muted">Loading…</p>';
+  let body = '';
+
+  if (tab === 'overview') {
+    const o = safe(() => store.adminOverview(), null);
+    const f = safe(() => store.adminFunnel(7), null);
+    const stat = (n, label) => `<p><b>${esc(nf(n ?? 0))}</b> ${esc(label)}</p>`;
+    const funnel = f ? { 'Visitors (devices)': f.visitors, 'Viewed an event': f.event_viewers, 'Tapped Register': f.register_clickers, 'Registered': f.registrations, 'Checked in': f.checked_in } : null;
+    body = `<section class="strip" aria-label="Campus totals">${o ? `<div class="strip__nums">
+        ${stat(o.tickets, 'live tickets')}${stat(o.checked_in, 'checked in')}${stat(o.checked_in_today, 'in today')}${stat(o.waitlisted, 'waitlisted')}
+        <p><b>₹${esc(nf(o.revenue_collected))}</b> collected</p>${stat(o.upcoming, 'upcoming events')}${stat(o.unverified_clubs, 'clubs to verify')}${stat(o.accounts, 'accounts')}${stat(o.scans_today, 'gate scans today')}
+      </div>` : loading}</section>
+      <div class="dash">
+        <section class="panel" aria-labelledby="fn-h"><h2 id="fn-h">Funnel, last ${esc(f?.days || 7)} days</h2>
+          ${funnel ? `<ul class="bars">${Object.entries(funnel).map(([k, n]) => `<li><span class="bars__label"><b>${esc(nf(n))}</b> ${esc(k)}</span><span class="bars__track" aria-hidden="true"><span class="bars__fill" style="width:${Math.max(3, Math.round((n / Math.max(1, ...Object.values(funnel))) * 100))}%"></span></span></li>`).join('')}</ul>
+          <p class="fine">${esc(nf(f.shares))} shares · ${esc(nf(f.pass_opens))} pass opens. Visitors are counted per device; registrations and check-ins come from the ticket tables.</p>` : loading}
+        </section>
+        <section class="panel" aria-labelledby="src-h"><h2 id="src-h">Where visitors come from</h2>
+          ${f ? (f.sources.length ? `<ul class="adm">${f.sources.map((s) => `<li><span class="adm__name">${esc(s.source)}</span><b class="num">${esc(nf(s.n))}</b></li>`).join('')}</ul>` : '<p class="muted">No visits recorded yet.</p>') : loading}
+          ${f?.zero_searches?.length ? `<h3 class="section-title section-title--sm">Searches with no results</h3><ul class="adm">${f.zero_searches.map((s) => `<li><span class="adm__name">“${esc(s.q)}”</span><b class="num">${esc(nf(s.n))}</b></li>`).join('')}</ul>` : ''}
+          ${f?.top_viewed?.length ? `<h3 class="section-title section-title--sm">Most viewed events</h3><ul class="adm">${f.top_viewed.map((s) => `<li><span class="adm__name"><a href="#/e/${enc(s.event_id)}">${esc(s.title)}</a></span><b class="num">${esc(nf(s.n))}</b></li>`).join('')}</ul>` : ''}
+        </section>
+      </div>`;
+  } else if (tab === 'people') {
+    const people = safe(() => store.adminPeople(adminUi.q), []);
+    body = `<section class="panel" aria-labelledby="pp-h"><h2 id="pp-h">People &amp; roles</h2>
+      <p class="muted">Checkers can scan passes for events they’re assigned to. Organisers run clubs. Admins can do everything.</p>
+      <label class="visually-hidden" for="adm-q">Search people</label>
+      <input id="adm-q" class="filter-input" type="search" placeholder="Search by name, email or entry no." autocomplete="off" value="${esc(adminUi.q)}" data-change="admin-q">
+      ${people === undefined ? loading : people.length ? `<ul class="adm">${people.map((p) => `<li>
+        <span class="adm__name">${esc(p.name || p.email)}${p.has_login ? '' : ' <small class="muted">sample attendee</small>'}<small class="muted">${esc(p.email)}${p.entry_no ? ` · ${esc(p.entry_no)}` : ''} · ${esc(nf(p.tickets))} tickets${p.staff_for ? ` · gate for ${esc(nf(p.staff_for))}` : ''}</small></span>
+        <label class="visually-hidden" for="role-${esc(p.id)}">Role for ${esc(p.name || p.email)}</label>
+        <select id="role-${esc(p.id)}" data-change="role" data-id="${esc(p.id)}" data-no-restore>${ROLES.map((r) => `<option${r === p.role ? ' selected' : ''}>${r}</option>`).join('')}</select>
+      </li>`).join('')}</ul>` : '<p class="muted">Nobody matches that search.</p>'}
+    </section>`;
+  } else if (tab === 'clubs') {
+    const clubs = safe(() => store.clubs(), []).sort((a, b) => Number(a.verified) - Number(b.verified) || a.name.localeCompare(b.name));
+    body = `<section class="panel" aria-labelledby="ac-h">
+        <h2 id="ac-h">Clubs <span class="muted num">(${esc(clubs.filter((c) => !c.verified).length)} to verify)</span></h2>
         <ul class="adm">${clubs.map((c) => `<li>
           <span class="adm__name"><a href="#/c/${enc(c.slug)}">${esc(c.name)}</a>${c.verified ? seal() : ' <span class="status status--waitlisted">Pending</span>'}${c.instagram ? `<small class="muted">${esc(c.instagram)}</small>` : ''}</span>
           <button class="btn btn--sm${c.verified ? ' btn--ghost' : ''}" data-action="verify" data-id="${esc(c.id)}" data-value="${c.verified ? '0' : '1'}">${c.verified ? 'Unverify' : 'Verify'}</button>
         </li>`).join('')}</ul>
-      </section>
-      <section class="panel" aria-labelledby="ae-h">
+      </section>`;
+  } else {
+    const events = safe(() => store.events({ tab: 'upcoming' }), []);
+    body = `<section class="panel" aria-labelledby="ae-h">
         <h2 id="ae-h">Upcoming events <span class="muted num">(${esc(events.length)})</span></h2>
-        <p class="muted">Only events from verified clubs can be featured.</p>
+        <p class="muted">Feature events from verified clubs. Open an event’s dashboard to see attendees and manage its gate team.</p>
         <ul class="adm">${events.map((e) => {
           const canFeature = e.featured || e.club?.verified;
           return `<li>
-          <span class="adm__name"><a href="#/e/${enc(e.id)}">${esc(e.title)}</a>${e.featured ? ' <span class="chip chip--first chip--featured">Featured</span>' : ''}<small class="muted">${esc(e.club?.name || '')} · ${esc(whenLabel(e.starts_at))}${canFeature ? '' : ' · club not verified'}</small></span>
-          <button class="btn btn--sm btn--ghost" data-action="feature" data-id="${esc(e.id)}" data-value="${e.featured ? '0' : '1'}" aria-pressed="${!!e.featured}"${canFeature ? '' : ' disabled'}>${e.featured ? 'Unfeature' : 'Feature'}</button>
+          <span class="adm__name"><a href="#/e/${enc(e.id)}">${esc(e.title)}</a>${e.featured ? ' <span class="chip chip--first chip--featured">Featured</span>' : ''}<small class="muted">${esc(e.club?.name || '')} · ${esc(whenLabel(e.starts_at))} · ${esc(nf(e.going))} going${canFeature ? '' : ' · club not verified'}</small></span>
+          <span class="inline">${e.reg_mode === 'platform' ? `<a class="btn btn--sm btn--ghost" href="#/org/e/${enc(e.id)}">Gate &amp; attendees</a>` : ''}
+          <button class="btn btn--sm btn--ghost" data-action="feature" data-id="${esc(e.id)}" data-value="${e.featured ? '0' : '1'}" aria-pressed="${!!e.featured}"${canFeature ? '' : ' disabled'}>${e.featured ? 'Unfeature' : 'Feature'}</button></span>
         </li>`;
         }).join('')}</ul>
-      </section>
-      <section class="panel panel--danger" aria-labelledby="ar-h">
-        <h2 id="ar-h">Reset demo data</h2>
-        <p class="muted">Wipes every registration, club and edit in this browser and reloads the sample events.</p>
-        ${confirmable('reset', '', 'Reset demo data', { ask: 'Wipe everything in this browser?', yes: 'Yes, reset', no: 'Keep my data' })}
-      </section>`,
-  };
+      </section>`;
+  }
+  return { title: 'Admin', nav: 'me', html: `${head}${body}` };
 }
 
 /* ------------------------------------------------------------------ */
@@ -2171,8 +2298,8 @@ function viewAdmin() {
 /* ------------------------------------------------------------------ */
 
 const actions = {
-  register(btn) { doRegister(btn.dataset.id); },
-  'join-team'(btn) { joinTeam(btn.dataset.id, btn.dataset.code); },
+  register(btn) { return doRegister(btn.dataset.id); },
+  'join-team'(btn) { return joinTeam(btn.dataset.id, btn.dataset.code); },
   'toggle-team'(btn) {
     const panel = app.querySelector('#team-forms');
     if (!panel) return;
@@ -2193,9 +2320,9 @@ const actions = {
     const b = wrap.querySelector('[data-action="ask"]');
     b.hidden = false; b.focus();
   },
-  cancel(btn) {
+  async cancel(btn) {
     mine();
-    store.cancel(btn.dataset.id);
+    await store.cancel(btn.dataset.id);
     toast('Cancelled. If anyone was waiting, your seat went to them.');
   },
   ics(btn) {
@@ -2206,8 +2333,9 @@ const actions = {
   async share(btn) {
     const e = store.event(btn.dataset.id);
     if (!e) return;
-    const url = linkTo(`#/e/${enc(e.id)}`);
+    const url = linkTo(`#/e/${enc(e.id)}?src=share`);
     const text = shareText(e);
+    store.track('share', { event_id: e.id, channel: navigator.share ? 'native' : 'whatsapp' });
     if (navigator.share) {
       try { await navigator.share({ title: e.title, text, url }); return; } catch (err) { if (err?.name === 'AbortError') return; }
     }
@@ -2215,51 +2343,45 @@ const actions = {
   },
   async copy(btn) {
     const ok = await copyText(btn.dataset.text || '');
+    store.track('share', { channel: 'copy' });
     toast(ok ? 'Link copied' : 'Could not copy. Long-press the link to copy it.', ok ? 'ok' : 'error');
   },
-  'demo-login'(btn) {
+  async 'demo-login'(btn) {
     mine();
-    const p = store.login(btn.dataset.email);
+    btn.disabled = true;
+    const p = await store.login(btn.dataset.email, DEMO_PASSWORD).finally(() => { btn.disabled = false; });
+    store.track('login', { demo: true });
     toast(`Logged in as ${p?.name || p?.email || btn.dataset.email}`);
     afterLogin(btn.dataset.next);
   },
-  logout() {
+  async logout() {
     stopScanner();
     closeSheet();
-    store.logout();
+    await store.logout();
     toast('Logged out');
     go('#/');
   },
   filter(btn) {
     const { key, value } = btn.dataset;
     feed[key] = feed[key] === value ? '' : value;
+    if (feed[key]) store.track('filter', { key, value });
     refresh();
   },
   'clear-filters'() { feed.category = ''; feed.price = ''; feed.eligibility = ''; refresh(); },
   'spot-go'(btn) { document.getElementById('spot-track')?._go?.(Number(btn.dataset.value) || 0); },
-  csv(btn) {
+  async csv(btn) {
     const e = store.event(btn.dataset.id);
-    download(`${slugify(e?.title)}-attendees.csv`, `﻿${store.toCSV(btn.dataset.id)}`, 'text/csv;charset=utf-8');
+    download(`${slugify(e?.title)}-attendees.csv`, `﻿${await store.toCSV(btn.dataset.id)}`, 'text/csv;charset=utf-8');
   },
-  verify(btn) {
+  async verify(btn) {
     const on = btn.dataset.value === '1';
-    store.setVerified(btn.dataset.id, on);
+    await store.setVerified(btn.dataset.id, on);
     toast(on ? 'Club verified. The seal now shows everywhere.' : 'Verification removed');
   },
-  feature(btn) {
+  async feature(btn) {
     const on = btn.dataset.value === '1';
-    store.setFeatured(btn.dataset.id, on);
+    await store.setFeatured(btn.dataset.id, on);
     toast(on ? 'Event featured' : 'Event unfeatured');
-  },
-  reset() {
-    stopScanner();
-    closeSheet();
-    store.reset();
-    scanLog.length = 0;
-    passOpen.clear();
-    feed.tab = null;
-    toast('Demo data reset');
-    go('#/');
   },
   'pick-color'(btn) {
     const input = app.querySelector('#ev-color');
@@ -2267,7 +2389,13 @@ const actions = {
   },
   'scan-start'() { startScanner(); },
   'scan-stop'() { stopScanner(); },
+  'gate-admit'(btn) { return gateAdmit(btn); },
+  async 'checker-remove'(btn) {
+    await store.removeChecker(btn.dataset.id, btn.dataset.user);
+    toast('Removed from the gate team');
+  },
   'scan-next'() {
+    gate.pending = null;
     const box = app.querySelector('#scan-result');
     if (box) box.innerHTML = '';
     lastScan = { token: '', at: 0 };
@@ -2303,19 +2431,36 @@ function fieldError(form, id, msg) {
 }
 
 const forms = {
-  login(form) {
+  async login(form) {
     const email = String(new FormData(form).get('email') || '').trim();
+    const password = String(new FormData(form).get('password') || '');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       const hint = form.querySelector('#login-hint');
       if (hint) { hint.textContent = 'Enter your full email address, like you@iitd.ac.in.'; hint.classList.add('field-error'); }
       fieldError(form, 'login-email', 'Enter your full email address, like you@iitd.ac.in.');
     }
+    if (!password) fieldError(form, 'login-password', 'Enter your password.');
     mine();
-    const p = store.login(email);
+    const p = await store.login(email, password);
+    store.track('login', {});
     toast(p?.is_iitd ? 'Logged in · IITD verified' : 'Logged in as a guest');
     afterLogin(new FormData(form).get('next'));
   },
-  onboarding(form) {
+  async signup(form) {
+    const fd = new FormData(form);
+    const name = String(fd.get('name') || '').trim();
+    const email = String(fd.get('email') || '').trim();
+    const password = String(fd.get('password') || '');
+    if (!name) fieldError(form, 'su-name', 'Add your name so organisers know who’s coming.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fieldError(form, 'login-email', 'Enter your full email address, like you@iitd.ac.in.');
+    if (password.length < 8) fieldError(form, 'login-password', 'Use at least 8 characters for your password.');
+    mine();
+    const p = await store.signup(email, password, name);
+    store.track('signup', { is_iitd: !!p?.is_iitd });
+    toast(p?.is_iitd ? 'Account created · IITD verified' : 'Account created');
+    afterLogin(fd.get('next'));
+  },
+  async onboarding(form) {
     const fd = new FormData(form);
     const patch = { name: String(fd.get('name') || '').trim(), phone: String(fd.get('phone') || '').trim() };
     if (fd.has('entry_no')) patch.entry_no = String(fd.get('entry_no') || '').trim().toUpperCase();
@@ -2325,7 +2470,7 @@ const forms = {
     if (fd.has('hostel') && !patch.hostel) fieldError(form, 'ob-hostel', 'Pick your hostel, or Day Scholar.');
     if (patch.phone && !/^[+\d][\d\s-]{7,14}$/.test(patch.phone)) fieldError(form, 'ob-phone', 'That phone number looks off. Use 10 digits, like 98765 43210.');
     mine();
-    store.updateProfile(patch);
+    await store.updateProfile(patch);
     const next = String(fd.get('next') || '');
     toast('Profile saved');
     if (next) go(safeNext(next), { replace: true }); else renderRoute();
@@ -2333,45 +2478,54 @@ const forms = {
   'team-create'(form) {
     const teamName = String(new FormData(form).get('teamName') || '').trim();
     if (!teamName) fieldError(form, 'team-name', 'Give your team a name.');
-    doRegister(parseRoute().parts[1], { teamName });
+    return doRegister(parseRoute().parts[1], { teamName });
   },
   'team-join'(form) {
     const raw = String(new FormData(form).get('teamCode') || '').trim();
     const code = raw.includes('/t/') ? raw.split('/t/').pop().split(/[?#]/)[0] : raw;
     if (!code) fieldError(form, 'team-code', 'Paste the invite code or link from your captain.');
-    doRegister(parseRoute().parts[1], { teamCode: decodeURIComponent(code) });
+    return doRegister(parseRoute().parts[1], { teamCode: decodeURIComponent(code) });
   },
-  'club-create'(form) {
+  async 'club-create'(form) {
     const name = String(new FormData(form).get('name') || '').trim();
     if (!name) fieldError(form, 'club-name', 'Enter your club’s name.');
     mine();
-    store.createClub(name);
+    await store.createClub(name);
     toast(`${name} created. Now post your first event.`);
     go('#/org/new');
   },
-  'event-save'(form, submitter) {
+  async 'event-save'(form, submitter) {
     const { data, missing, errs } = readEventForm(form, submitter);
     const problems = data.status === 'published' ? [...missing, ...errs] : [...missing.filter(([k]) => k === 'ev-title' || k === 'ev-start'), ...errs];
     if (problems.length) fieldError(form, problems[0][0], problems[0][1]);
     if (form.dataset.id) data.id = form.dataset.id;
     mine();
-    const saved = store.saveEvent(data);
+    const saved = await store.saveEvent(data);
     const id = saved?.id || data.id;
     toast(data.status === 'draft' ? 'Saved as draft' : form.dataset.id ? 'Changes saved' : 'Published. Students can register now.');
     go(`#/org/e/${enc(id)}${data.status === 'published' && !form.dataset.id ? '?published=1' : ''}`);
   },
-  'live-update'(form) {
+  async 'live-update'(form) {
     const note = String(new FormData(form).get('note') || '').trim();
     if (!note) fieldError(form, 'upd-note', 'Write the update first.');
     mine();
-    store.postUpdate(form.dataset.id, note);
+    await store.postUpdate(form.dataset.id, note);
     form.reset();
     toast('Update posted. Everyone registered sees it on their pass.');
   },
-  'manual-checkin'(form) {
+  async 'manual-checkin'(form) {
     const input = form.querySelector('#scan-code');
-    doCheckIn(input?.value);
+    const code = input?.value;
     if (input) input.value = '';
+    await doCheckIn(code);
+  },
+  async 'checker-add'(form) {
+    const email = String(new FormData(form).get('email') || '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fieldError(form, 'chk-email', 'Enter the volunteer’s email address.');
+    mine();
+    const who = await store.addChecker(form.dataset.id, email);
+    form.reset();
+    toast(`${who?.name || email} can now scan passes for this event.`);
   },
 };
 
@@ -2381,23 +2535,47 @@ document.addEventListener('submit', (ev) => {
   ev.preventDefault();
   const fn = forms[form.dataset.form];
   if (!fn) return;
-  try { fn(form, ev.submitter); } catch (err) { if (!err?.userFacing) console.error(err); toast(errMsg(err), 'error'); }
+  const btn = ev.submitter || form.querySelector('[type="submit"]');
+  if (btn?.dataset.busy) return; // no double submits while a write is in flight
+  if (btn) btn.dataset.busy = '1';
+  Promise.resolve().then(() => fn(form, ev.submitter))
+    .catch((err) => { if (!err?.userFacing) console.error(err); toast(errMsg(err), 'error'); })
+    .finally(() => { if (btn) delete btn.dataset.busy; });
 });
 
 document.addEventListener('input', (ev) => {
   if (ev.target.matches?.('[aria-invalid="true"]')) ev.target.removeAttribute('aria-invalid');
 });
-document.addEventListener('change', (ev) => {
+document.addEventListener('change', async (ev) => {
   const sel = ev.target.closest('[data-change="category"]');
-  if (sel) { feed.category = sel.value; refresh(); }
+  if (sel) { feed.category = sel.value; store.track('filter', { key: 'category', value: sel.value }); refresh(); }
+  const role = ev.target.closest('[data-change="role"]');
+  if (role) {
+    try { await store.setRole(role.dataset.id, role.value); toast(`Role changed to ${role.value}`); } catch (err) { toast(errMsg(err), 'error'); refresh(); }
+  }
+});
+let adminSearchTimer = 0;
+document.addEventListener('input', (ev) => {
+  const q = ev.target.closest('[data-change="admin-q"]');
+  if (!q) return;
+  clearTimeout(adminSearchTimer);
+  adminSearchTimer = setTimeout(() => { adminUi.q = q.value; refresh(); }, 250);
 });
 
 // Top-bar search: live filtering of the feed.
 let searchTimer = 0;
+let searchTrackTimer = 0;
+function trackSearch(q) { // one event per settled query, with its result count (zero results = missing supply)
+  clearTimeout(searchTrackTimer);
+  const t = String(q || '').trim();
+  if (t.length < 2) return;
+  searchTrackTimer = setTimeout(() => store.track('search', { q: t.slice(0, 60).toLowerCase(), results: safe(() => store.events({ tab: 'upcoming', q: t }), []).length }), 1200);
+}
 searchInput?.addEventListener('input', () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
     feed.q = searchInput.value;
+    trackSearch(feed.q);
     if (parseRoute().path !== '/') { history.pushState(null, '', '#/'); renderRoute(); searchInput.focus(); }
     else refresh();
   }, 120);
@@ -2428,4 +2606,7 @@ setInterval(() => {
   refresh();
 }, 60e3);
 
-renderRoute();
+store.ready.then(renderRoute, (err) => {
+  console.error(err);
+  app.innerHTML = `<section class="auth"><h1>Can’t reach IITD Live</h1><p class="lede">Check your connection, then try again.</p><button class="btn" onclick="location.reload()">Try again</button></section>`;
+});

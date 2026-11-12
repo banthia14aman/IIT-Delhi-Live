@@ -39,6 +39,27 @@ async function q(promise) {
 }
 const rpc = (fn, args) => q(sb.rpc(fn, args));
 
+// ---------- behaviour analytics (pseudonymous; see migration 0004) ----------
+
+let anonId = '';
+try { anonId = localStorage.getItem('iitdlive:anon') || ''; } catch { /* storage blocked */ }
+if (!anonId) {
+  anonId = globalThis.crypto?.randomUUID?.() || `a${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+  try { localStorage.setItem('iitdlive:anon', anonId); } catch { /* fine: a new id per visit */ }
+}
+function firstTouch() { // where this visit came from: ?src= on the link, else the referring site, else direct
+  try {
+    let src = sessionStorage.getItem('iitdlive:src');
+    if (!src) {
+      const m = location.hash.match(/[?&](?:src|utm_source)=([\w.-]{1,30})/);
+      const ref = document.referrer && !document.referrer.startsWith(location.origin) ? new URL(document.referrer).hostname.replace(/^www\./, '') : '';
+      src = m ? m[1] : ref || 'direct';
+      sessionStorage.setItem('iitdlive:src', src);
+    }
+    return src.slice(0, 40);
+  } catch { return 'direct'; }
+}
+
 // ---------- cache ----------
 
 let S = { events: [], clubs: [], fests: [], counts: new Map(), me: null, regs: [], teams: [] };
@@ -470,6 +491,15 @@ export const store = {
     await q(sb.from('events').update({ featured: !!bool }).eq('id', eventId));
     await load();
   },
+
+  /** Fire-and-forget analytics event; never blocks or breaks the UI. */
+  track(name, { event_id = null, ...props } = {}) {
+    try {
+      const row = { name, anon_id: anonId, path: (location.hash.split('?')[0] || '#/').slice(0, 200), source: firstTouch(), event_id, props };
+      sb.from('app_events').insert(row).then(({ error }) => { if (error) console.warn('track', error.message); }, () => {});
+    } catch { /* analytics must never break the app */ }
+  },
+  adminFunnel(days = 7) { return swr(`admin:funnel:${days}`, () => rpc('admin_funnel', { p_days: days }), null); },
 
   subscribe(fn) {
     listeners.add(fn);
